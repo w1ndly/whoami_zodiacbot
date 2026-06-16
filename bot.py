@@ -374,6 +374,9 @@ def get_country_from_place(place):
 def short_place_name(place):
     parts = [p.strip() for p in place.split(",")]
 
+    if len(parts) >= 3:
+        return f"{parts[0]}, {parts[-2]}, {parts[-1]}"
+
     if len(parts) >= 2:
         return f"{parts[0]}, {parts[-1]}"
 
