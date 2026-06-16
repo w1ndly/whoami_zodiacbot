@@ -1,6 +1,6 @@
 import asyncio
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
  
 import swisseph as swe
@@ -218,6 +218,82 @@ def calculate_sun_sign(birth_date: str, birth_time: str, birth_place: str):
         "location_name": location.address,
     }
 
+
+def get_sun_sign_at_utc(utc_datetime):
+    hour_decimal = (
+        utc_datetime.hour
+        + utc_datetime.minute / 60
+        + utc_datetime.second / 3600
+    )
+
+    julian_day = swe.julday(
+        utc_datetime.year,
+        utc_datetime.month,
+        utc_datetime.day,
+        hour_decimal
+    )
+
+    sun_position = swe.calc_ut(julian_day, swe.SUN)[0][0]
+
+    sign_index = int(sun_position // 30)
+
+    return ZODIAC_SIGNS[sign_index]
+
+
+def find_sun_transition_time(birth_date: str, birth_place: str):
+    location = geolocator.geocode(birth_place, timeout=10)
+
+    if location is None:
+        return None
+
+    timezone_name = timezone_finder.timezone_at(
+        lat=location.latitude,
+        lng=location.longitude
+    )
+
+    if timezone_name is None:
+        return None
+
+    local_start = datetime.strptime(
+        birth_date,
+        "%d.%m.%Y"
+    ).replace(tzinfo=ZoneInfo(timezone_name))
+
+    local_end = local_start + timedelta(days=1)
+
+    utc_start = local_start.astimezone(ZoneInfo("UTC"))
+    utc_end = local_end.astimezone(ZoneInfo("UTC"))
+
+    start_sign = get_sun_sign_at_utc(utc_start)
+    end_sign = get_sun_sign_at_utc(utc_end)
+
+    if start_sign == end_sign:
+        return None
+
+    left = utc_start
+    right = utc_end
+
+    for _ in range(40):
+        middle = left + (right - left) / 2
+        middle_sign = get_sun_sign_at_utc(middle)
+
+        if middle_sign == start_sign:
+            left = middle
+        else:
+            right = middle
+
+    transition_utc = right
+    transition_local = transition_utc.astimezone(ZoneInfo(timezone_name))
+
+    return {
+        "from_sign": start_sign,
+        "to_sign": end_sign,
+        "transition_time": transition_local.strftime("%H:%M"),
+        "timezone": timezone_name,
+        "location_name": location.address,
+    }
+
+
 def find_places(query: str):
     try:
         locations = geolocator.geocode(
@@ -386,15 +462,40 @@ async def handle_message(message: Message):
         return
 
 
-    if state == "waiting_for_transition_place":
-        data["birth_place"] = text
-        user_data[user_id] = data
+if state == "waiting_for_transition_place":
+    data["birth_place"] = text
+    user_data[user_id] = data
 
+    result = find_sun_transition_time(
+        data.get("birth_date"),
+        data.get("birth_place")
+    )
+
+    if result is None:
         await message.answer(
-            "Место рождения принято.\n\n"
-            "Следующим шагом я рассчитаю, во сколько в этот день Солнце перешло из одного знака в другой."
+            "Не удалось рассчитать время перехода Солнца.\n\n"
+            "Попробуйте ввести место рождения подробнее.\n\n"
+            "Например:\n"
+            "<b>Москва, Россия</b>"
         )
         return
+
+    from_sign = result["from_sign"]
+    to_sign = result["to_sign"]
+    transition_time = result["transition_time"]
+
+    user_data.pop(user_id, None)
+
+    await message.answer(
+        f"✨ В этот день Солнце перешло из знака {from_sign} "
+        f"в знак {to_sign} в <b>{transition_time}</b>.\n\n"
+        f"Если вы родились до <b>{transition_time}</b>, "
+        f"то ваш знак зодиака — {from_sign}.\n\n"
+        f"Если вы родились после <b>{transition_time}</b>, "
+        f"то ваш знак зодиака — {to_sign}.\n\n"
+        "Теперь вы знаете. Осталось лишь уточнить точное время своего рождения."
+    )
+    return
 
 
     if state == "waiting_for_place":
