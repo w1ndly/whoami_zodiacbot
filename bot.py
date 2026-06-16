@@ -331,6 +331,7 @@ def find_places(query: str):
 FLAGS = {
     "Russian Federation": "🇷🇺",
     "Россия": "🇷🇺",
+    "РФ": "🇷🇺",
 
     "Morocco": "🇲🇦",
     "Марокко": "🇲🇦",
@@ -340,20 +341,26 @@ FLAGS = {
 
     "United States": "🇺🇸",
     "США": "🇺🇸",
+    "USA": "🇺🇸",
 
     "United Kingdom": "🇬🇧",
     "Великобритания": "🇬🇧",
+    "UK": "🇬🇧",
 
     "France": "🇫🇷",
+    "République française": "🇫🇷",
     "Франция": "🇫🇷",
 
     "Germany": "🇩🇪",
+    "Deutschland": "🇩🇪",
     "Германия": "🇩🇪",
 
     "Spain": "🇪🇸",
+    "España": "🇪🇸",
     "Испания": "🇪🇸",
 
     "Italy": "🇮🇹",
+    "Italia": "🇮🇹",
     "Италия": "🇮🇹",
 }
 
@@ -380,18 +387,44 @@ def short_place_name(place):
         if not part.replace("-", "").isdigit()
     ]
 
+    # Убираем федеральные округа России
+    parts = [
+        part for part in parts
+        if "федеральный округ" not in part.lower()
+    ]
+
     country = parts[-1] if parts else ""
+    city = parts[0] if parts else ""
 
     # Россия
-    if country in ["Россия", "Russian Federation", "РФ"]:
-        city = parts[0]
+    if country in ["Россия", "Russian Federation"]:
+        if city in ["Москва", "Санкт-Петербург"]:
+            return f"{city}, Россия"
+
+        region = ""
+
+        for part in reversed(parts[:-1]):
+            if part != city:
+                region = part
+                break
+
+        region = (
+            region
+            .replace(" область", " обл.")
+            .replace(" край", " кр.")
+            .replace(" Республика ", " Респ. ")
+            .replace(" республика ", " респ. ")
+            .replace(" автономный округ", " АО")
+            .replace(" автономная область", " авт. обл.")
+        )
+
+        if region:
+            return f"{city}, {region}, Россия"
 
         return f"{city}, Россия"
 
     # США
-    if country in ["United States", "США", "USA"]:
-        city = parts[0]
-
+    if country in ["United States", "США"]:
         state = ""
 
         for part in reversed(parts[:-1]):
@@ -410,7 +443,7 @@ def short_place_name(place):
 
     # Остальные страны
     if len(parts) >= 2:
-        return f"{parts[0]}, {country}"
+        return f"{city}, {country}"
 
     return place
 
