@@ -1,13 +1,17 @@
 import asyncio
 import os
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
+import swisseph as swe
 from aiogram import Bot, Dispatcher
-from aiogram.filters import CommandStart, Command
-from aiogram.types import Message
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
+from aiogram.filters import CommandStart, Command
+from aiogram.types import Message
 from dotenv import load_dotenv
+from geopy.geocoders import Nominatim
+from timezonefinder import TimezoneFinder
 
 load_dotenv()
 
@@ -20,6 +24,25 @@ bot = Bot(
 dp = Dispatcher()
 
 user_data = {}
+
+geolocator = Nominatim(user_agent="whoami_zodiacbot")
+timezone_finder = TimezoneFinder()
+
+
+ZODIAC_SIGNS = [
+    "Овен ♈️",
+    "Телец ♉️",
+    "Близнецы ♊️",
+    "Рак ♋️",
+    "Лев ♌️",
+    "Дева ♍️",
+    "Весы ♎️",
+    "Скорпион ♏️",
+    "Стрелец ♐️",
+    "Козерог ♑️",
+    "Водолей ♒️",
+    "Рыбы ♓️",
+]
 
 
 def get_zodiac_sign(day: int, month: int) -> str:
@@ -68,6 +91,59 @@ def is_border_date(day: int, month: int) -> bool:
     }
 
     return day in border_dates.get(month, [])
+
+
+def calculate_sun_sign(birth_date: str, birth_time: str, birth_place: str):
+    location = geolocator.geocode(birth_place, timeout=10)
+
+    if location is None:
+        return None
+
+    timezone_name = timezone_finder.timezone_at(
+        lat=location.latitude,
+        lng=location.longitude
+    )
+
+    if timezone_name is None:
+        return None
+
+    local_datetime = datetime.strptime(
+        f"{birth_date} {birth_time}",
+        "%d.%m.%Y %H:%M"
+    )
+
+    local_datetime = local_datetime.replace(tzinfo=ZoneInfo(timezone_name))
+    utc_datetime = local_datetime.astimezone(ZoneInfo("UTC"))
+
+    hour_decimal = (
+        utc_datetime.hour
+        + utc_datetime.minute / 60
+        + utc_datetime.second / 3600
+    )
+
+    julian_day = swe.julday(
+        utc_datetime.year,
+        utc_datetime.month,
+        utc_datetime.day,
+        hour_decimal
+    )
+
+    sun_position = swe.calc_ut(julian_day, swe.SUN)[0][0]
+
+    sign_index = int(sun_position // 30)
+    sign = ZODIAC_SIGNS[sign_index]
+
+    degree_in_sign = sun_position % 30
+    degrees = int(degree_in_sign)
+    minutes = int((degree_in_sign - degrees) * 60)
+
+    return {
+        "sign": sign,
+        "degrees": degrees,
+        "minutes": minutes,
+        "timezone": timezone_name,
+        "location_name": location.address,
+    }
 
 
 @dp.message(CommandStart())
@@ -124,12 +200,33 @@ async def handle_message(message: Message):
         user_data[user_id] = data
 
         await message.answer(
-            f"Место рождения принято: <b>{text}</b>.\n\n"
-            "Теперь у меня есть все данные для точного расчета знака:\n\n"
+            "Принял место рождения. Сейчас рассчитываю положение Солнца..."
+        )
+
+        result = calculate_sun_sign(
+            data.get("birth_date"),
+            data.get("birth_time"),
+            data.get("birth_place")
+        )
+
+        if result is None:
+            await message.answer(
+                "Не удалось определить место рождения или часовой пояс.\n\n"
+                "Попробуйте ввести место подробнее, например:\n"
+                "<b>Москва, Россия</b>\n\n"
+                "Или начните заново командой /clear."
+            )
+            return
+
+        await message.answer(
+            f"Ваш знак зодиака — <b>{result['sign']}</b>\n\n"
+            f"Данные расчета:\n"
             f"Дата рождения: <b>{data.get('birth_date')}</b>\n"
             f"Время рождения: <b>{data.get('birth_time')}</b>\n"
-            f"Место рождения: <b>{data.get('birth_place')}</b>\n\n"
-            "Следующим шагом мы подключим эфемериды и рассчитаем точное положение Солнца."
+            f"Место рождения: <b>{data.get('birth_place')}</b>\n"
+            f"Часовой пояс: <b>{result['timezone']}</b>\n\n"
+            f"В момент вашего рождения Солнце находилось в знаке <b>{result['sign']}</b>.\n\n"
+            f"Теперь никаких сомнений. Вы точно знаете свой знак зодиака."
         )
         return
 
@@ -199,7 +296,7 @@ async def handle_message(message: Message):
     sign = get_zodiac_sign(day, month)
 
     await message.answer(
-        f"Ваш знак зодиака — {sign}\n\n"
+        f"Ваш знак зодиака — <b>{sign}</b>\n\n"
         f"В момент вашего рождения Солнце находилось в этом знаке.\n\n"
         f"Теперь никаких сомнений. Вы точно знаете свой знак зодиака."
     )
