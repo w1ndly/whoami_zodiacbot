@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 
 from aiogram import Bot, Dispatcher
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
@@ -81,6 +81,18 @@ async def start(message: Message):
         "дд.мм.гггг\n\n"
         "Например:\n"
         "23.08.1994"
+    )
+
+
+@dp.message(Command("clear"))
+async def clear(message: Message):
+    user_states.pop(message.from_user.id, None)
+
+    await message.answer(
+        "✨ Все введенные данные очищены.\n\n"
+        "Теперь вы можете начать заново.\n\n"
+        "Введите дату рождения в формате:\n"
+        "дд.мм.гггг"
     )
 
 
