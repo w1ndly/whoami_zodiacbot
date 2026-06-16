@@ -111,6 +111,60 @@ def is_border_date(day: int, month: int) -> bool:
 
     return day in border_dates.get(month, [])
 
+def get_border_signs(day: int, month: int):
+    border_signs = {
+        1: {
+            20: ("Козерог ♑️", "Водолей ♒️"),
+            21: ("Козерог ♑️", "Водолей ♒️"),
+        },
+        2: {
+            18: ("Водолей ♒️", "Рыбы ♓️"),
+            19: ("Водолей ♒️", "Рыбы ♓️"),
+        },
+        3: {
+            20: ("Рыбы ♓️", "Овен ♈️"),
+            21: ("Рыбы ♓️", "Овен ♈️"),
+        },
+        4: {
+            20: ("Овен ♈️", "Телец ♉️"),
+            21: ("Овен ♈️", "Телец ♉️"),
+        },
+        5: {
+            20: ("Телец ♉️", "Близнецы ♊️"),
+            21: ("Телец ♉️", "Близнецы ♊️"),
+        },
+        6: {
+            21: ("Близнецы ♊️", "Рак ♋️"),
+            22: ("Близнецы ♊️", "Рак ♋️"),
+        },
+        7: {
+            22: ("Рак ♋️", "Лев ♌️"),
+            23: ("Рак ♋️", "Лев ♌️"),
+        },
+        8: {
+            22: ("Лев ♌️", "Дева ♍️"),
+            23: ("Лев ♌️", "Дева ♍️"),
+        },
+        9: {
+            22: ("Дева ♍️", "Весы ♎️"),
+            23: ("Дева ♍️", "Весы ♎️"),
+        },
+        10: {
+            22: ("Весы ♎️", "Скорпион ♏️"),
+            23: ("Весы ♎️", "Скорпион ♏️"),
+        },
+        11: {
+            21: ("Скорпион ♏️", "Стрелец ♐️"),
+            22: ("Скорпион ♏️", "Стрелец ♐️"),
+        },
+        12: {
+            21: ("Стрелец ♐️", "Козерог ♑️"),
+            22: ("Стрелец ♐️", "Козерог ♑️"),
+        },
+    }
+
+    return border_signs.get(month, {}).get(day)
+
 
 def calculate_sun_sign(birth_date: str, birth_time: str, birth_place: str):
     location = geolocator.geocode(birth_place, timeout=10)
@@ -302,14 +356,20 @@ async def handle_callback(callback: CallbackQuery):
         return
 
     if callback.data == "birth_time_no":
+        data["state"] = "waiting_for_transition_place"
+        user_data[user_id] = data
+
         await callback.message.answer(
-            "Пока здесь будет расчет времени перехода Солнца.\n\n"
-            "Следующим шагом научим бота определять, во сколько Солнце перешло из одного знака в другой."
+            "Хорошо. Чтобы определить время перехода Солнца, мне нужно место рождения.\n\n"
+            "Введите место рождения:\n"
+            "город, страна\n\n"
+            "Например:\n"
+            "Москва, Россия"
         )
 
         await callback.answer()
         return
-        
+
 
 @dp.message()
 async def handle_message(message: Message):
@@ -324,6 +384,18 @@ async def handle_message(message: Message):
             "Если сообщение потерялось — используйте /clear."
         )
         return
+
+
+    if state == "waiting_for_transition_place":
+        data["birth_place"] = text
+        user_data[user_id] = data
+
+        await message.answer(
+            "Место рождения принято.\n\n"
+            "Следующим шагом я рассчитаю, во сколько в этот день Солнце перешло из одного знака в другой."
+        )
+        return
+
 
     if state == "waiting_for_place":
         data["birth_place"] = text
@@ -437,6 +509,8 @@ async def handle_message(message: Message):
             "is_paid": False,
         }
 
+        first_sign, second_sign = get_border_signs(day, month)
+        
         keyboard = InlineKeyboardMarkup(
             inline_keyboard=[
                 [
@@ -449,8 +523,8 @@ async def handle_message(message: Message):
         await message.answer(
             "Вы родились в пограничный день ✨\n"
             "В этот день Солнце переходило из одного знака зодиака в другой.\n\n"
-            "Возможные варианты:\n"
-            "♌️ Лев или ♍️ Дева\n\n"
+            f"Возможные варианты:\n"
+            f"{first_sign} или {second_sign}\n\n"
             "Без точного времени рождения невозможно определить знак на 100%.\n\n"
             "Время рождения известно?",
             reply_markup=keyboard
