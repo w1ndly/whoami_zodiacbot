@@ -374,11 +374,43 @@ def get_country_from_place(place):
 def short_place_name(place):
     parts = [p.strip() for p in place.split(",")]
 
-    if len(parts) >= 3:
-        return f"{parts[0]}, {parts[-2]}, {parts[-1]}"
+    # Убираем почтовые индексы
+    parts = [
+        part for part in parts
+        if not part.replace("-", "").isdigit()
+    ]
 
+    country = parts[-1] if parts else ""
+
+    # Россия
+    if country in ["Россия", "Russian Federation", "РФ"]:
+        city = parts[0]
+
+        return f"{city}, Россия"
+
+    # США
+    if country in ["United States", "США", "USA"]:
+        city = parts[0]
+
+        state = ""
+
+        for part in reversed(parts[:-1]):
+            if (
+                "County" not in part
+                and "county" not in part
+                and len(part) > 2
+            ):
+                state = part
+                break
+
+        if state:
+            return f"{city}, {state}, США"
+
+        return f"{city}, США"
+
+    # Остальные страны
     if len(parts) >= 2:
-        return f"{parts[0]}, {parts[-1]}"
+        return f"{parts[0]}, {country}"
 
     return place
 
