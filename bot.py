@@ -215,7 +215,7 @@ def calculate_sun_sign(birth_date: str, birth_time: str, birth_place: str):
         "degrees": degrees,
         "minutes": minutes,
         "timezone": timezone_name,
-        "location_name": location.address,
+        "location_name": final_location_name,
     }
 
 
@@ -240,15 +240,24 @@ def get_sun_sign_at_utc(utc_datetime):
     return ZODIAC_SIGNS[sign_index]
 
 
-def find_sun_transition_time(birth_date: str, birth_place: str):
-    location = geolocator.geocode(birth_place, timeout=10)
+def find_sun_transition_time(birth_date: str, birth_place: str = None, latitude=None, longitude=None, location_name=None):
+    if latitude is not None and longitude is not None:
+        location_latitude = latitude
+        location_longitude = longitude
+        final_location_name = location_name or birth_place
+    else:
+        location = geolocator.geocode(birth_place, timeout=10)
 
-    if location is None:
-        return None
+        if location is None:
+            return None
+
+        location_latitude = location.latitude
+        location_longitude = location.longitude
+        final_location_name = location.address
 
     timezone_name = timezone_finder.timezone_at(
-        lat=location.latitude,
-        lng=location.longitude
+        lat=location_latitude,
+        lng=location_longitude
     )
 
     if timezone_name is None:
@@ -415,7 +424,7 @@ def short_place_name(place):
             .replace(" Республика ", " Респ. ")
             .replace(" республика ", " респ. ")
             .replace(" автономный округ", " АО")
-            .replace(" автономная область", " авт. обл.")
+            .replace(" автономная область", " АО")
         )
 
         if region:
@@ -511,6 +520,9 @@ async def handle_callback(callback: CallbackQuery):
 
         result = find_sun_transition_time(
             data.get("birth_date"),
+            selected_place["name"],
+            selected_place["latitude"],
+            selected_place["longitude"],
             selected_place["name"]
         )
 
