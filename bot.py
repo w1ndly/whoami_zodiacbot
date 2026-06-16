@@ -417,6 +417,54 @@ async def handle_callback(callback: CallbackQuery):
     user_id = callback.from_user.id
     data = user_data.get(user_id, {})
 
+    if callback.data.startswith("transition_place_"):
+        index = int(callback.data.replace("transition_place_", ""))
+
+        place_options = data.get("place_options", [])
+
+        if index >= len(place_options):
+            await callback.message.answer(
+                "Не удалось выбрать место рождения.\n\n"
+                "Пожалуйста, введите город еще раз."
+            )
+            await callback.answer()
+            return
+
+        selected_place = place_options[index]
+
+        result = find_sun_transition_time(
+            data.get("birth_date"),
+            selected_place["name"]
+        )
+
+        if result is None:
+            await callback.message.answer(
+                "Не удалось рассчитать время перехода Солнца для этого места.\n\n"
+                "Попробуйте ввести место рождения подробнее."
+            )
+            await callback.answer()
+            return
+
+        from_sign = result["from_sign"]
+        to_sign = result["to_sign"]
+        transition_time = result["transition_time"]
+
+        user_data.pop(user_id, None)
+
+        await callback.message.answer(
+            f"✨ В этот день Солнце перешло из знака {from_sign} "
+            f"в знак {to_sign} в <b>{transition_time}</b>.\n\n"
+            f"Если вы родились до <b>{transition_time}</b>, "
+            f"то вы — {from_sign}.\n\n"
+            f"Если после <b>{transition_time}</b>, "
+            f"то вы — {to_sign}.\n\n"
+            "Теперь вы знаете. И все, что осталось — найти точное время своего рождения."
+        )
+
+        await callback.answer()
+        return
+        
+
     if callback.data == "birth_time_yes":
         data["state"] = "waiting_for_time"
         user_data[user_id] = data
@@ -514,54 +562,6 @@ async def handle_message(message: Message):
             "Пожалуйста, используйте кнопки ниже для подтверждения места рождения."
             "Если сообщение потерялось — используйте /clear."
         )
-        return
-
-    
-    if callback.data.startswith("transition_place_"):
-        index = int(callback.data.replace("transition_place_", ""))
-
-        place_options = data.get("place_options", [])
-
-        if index >= len(place_options):
-            await callback.message.answer(
-                "Не удалось выбрать место рождения.\n\n"
-                "Пожалуйста, введите город еще раз."
-            )
-            await callback.answer()
-            return
-
-        selected_place = place_options[index]
-
-        result = find_sun_transition_time(
-            data.get("birth_date"),
-            selected_place["name"]
-        )
-
-        if result is None:
-            await callback.message.answer(
-                "Не удалось рассчитать время перехода Солнца для этого места.\n\n"
-                "Попробуйте ввести место рождения подробнее."
-            )
-            await callback.answer()
-            return
-
-        from_sign = result["from_sign"]
-        to_sign = result["to_sign"]
-        transition_time = result["transition_time"]
-
-        user_data.pop(user_id, None)
-
-        await callback.message.answer(
-            f"✨ В этот день Солнце перешло из знака {from_sign} "
-            f"в знак {to_sign} в <b>{transition_time}</b>.\n\n"
-            f"Если вы родились до <b>{transition_time}</b>, "
-            f"то вы — {from_sign}.\n\n"
-            f"Если после <b>{transition_time}</b>, "
-            f"то вы — {to_sign}.\n\n"
-            "Теперь вы знаете. И все, что осталось — найти точное время своего рождения."
-        )
-
-        await callback.answer()
         return
 
 
