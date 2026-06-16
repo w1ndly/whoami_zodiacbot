@@ -362,6 +362,15 @@ def country_to_flag(country_name: str) -> str:
     return FLAGS.get(country_name, "🌍")
 
 
+def get_country_from_place(place):
+    parts = [p.strip() for p in place.split(",")]
+
+    if len(parts) >= 1:
+        return parts[-1]
+
+    return ""
+
+
 def short_place_name(place):
     parts = [p.strip() for p in place.split(",")]
 
@@ -586,7 +595,7 @@ async def handle_message(message: Message):
         for index, place in enumerate(places):
             buttons.append([
                 InlineKeyboardButton(
-                    text=f"🌍 {short_place_name(place['name'])}",
+                    text=f"{country_to_flag(get_country_from_place(place['name']))} {short_place_name(place['name'])}",
                     callback_data=f"transition_place_{index}"
                 )
             ])
