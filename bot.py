@@ -282,6 +282,35 @@ async def help_command(message: Message):
     )
 
 
+@dp.callback_query()
+async def handle_callback(callback: CallbackQuery):
+    user_id = callback.from_user.id
+    data = user_data.get(user_id, {})
+
+    if callback.data == "birth_time_yes":
+        data["state"] = "waiting_for_time"
+        user_data[user_id] = data
+
+        await callback.message.answer(
+            "Введите время рождения в формате:\n"
+            "чч:мм\n\n"
+            "Например:\n"
+            "14:30"
+        )
+
+        await callback.answer()
+        return
+
+    if callback.data == "birth_time_no":
+        await callback.message.answer(
+            "Пока здесь будет расчет времени перехода Солнца.\n\n"
+            "Следующим шагом научим бота определять, во сколько Солнце перешло из одного знака в другой."
+        )
+
+        await callback.answer()
+        return
+        
+
 @dp.message()
 async def handle_message(message: Message):
     user_id = message.from_user.id
@@ -428,7 +457,7 @@ async def handle_message(message: Message):
         )
         return
 
-        
+
     sign = get_zodiac_sign(day, month)
     element = ELEMENTS[sign]["name"]
 
