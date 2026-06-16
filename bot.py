@@ -89,6 +89,16 @@ async def handle_message(message: Message):
     user_id = message.from_user.id
     text = message.text.strip()
 
+    if user_states.get(user_id) == "waiting_for_place":
+        birth_place = text
+        user_states.pop(user_id, None)
+
+        await message.answer(
+            f"Место рождения принято: <b>{birth_place}</b>.\n\n"
+            "Следующим шагом мы подключим эфемериды, часовые пояса и рассчитаем точный знак по дате, времени и месту рождения."
+        )
+        return
+
     if user_states.get(user_id) == "waiting_for_time":
         try:
             birth_time = datetime.strptime(text, "%H:%M")
@@ -103,12 +113,15 @@ async def handle_message(message: Message):
                 "Не знаю"
             )
             return
-
-        user_states.pop(user_id, None)
+    
+        user_states[user_id] = "waiting_for_place"
 
         await message.answer(
-            f"Время рождения принято: {birth_time.strftime('%H:%M')}.\n\n"
-            "Следующим шагом мы подключим эфемериды и научим меня определять знак точно по времени рождения."
+            f"Время рождения принято: <b>{birth_time.strftime('%H:%M')}</b>.\n\n"
+            "Теперь введите место рождения:\n"
+            "город, страна\n\n"
+            "Например:\n"
+            "Москва, Россия"
         )
         return
 
