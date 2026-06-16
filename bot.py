@@ -8,9 +8,10 @@ from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart, Command
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from dotenv import load_dotenv
 from geopy.geocoders import Nominatim
+from geopy.exc import GeocoderTimedOut
 from timezonefinder import TimezoneFinder
 
 load_dotenv()
@@ -25,7 +26,10 @@ dp = Dispatcher()
 
 user_data = {}
 
-geolocator = Nominatim(user_agent="whoami_zodiacbot")
+geolocator = Nominatim(
+    user_agent="whoami_zodiacbot",
+    timeout=10
+)
 timezone_finder = TimezoneFinder()
 
 
@@ -160,6 +164,32 @@ def calculate_sun_sign(birth_date: str, birth_time: str, birth_place: str):
         "location_name": location.address,
     }
 
+def find_places(query: str):
+    try:
+        locations = geolocator.geocode(
+            query,
+            exactly_one=False,
+            limit=5,
+            addressdetails=True
+        )
+
+        if not locations:
+            return []
+
+        results = []
+
+        for location in locations:
+            results.append({
+                "name": location.address,
+                "latitude": location.latitude,
+                "longitude": location.longitude
+            })
+
+        return results
+
+    except GeocoderTimedOut:
+        return []
+
 
 @dp.message(CommandStart())
 async def start(message: Message):
@@ -202,20 +232,80 @@ async def help_command(message: Message):
     )
 
 
-@dp.message()
-async def handle_message(message: Message):
-    user_id = message.from_user.id
-    text = message.text.strip()
+@dp.callback_query()
+async def handle_callback(callback: CallbackQuery):
+    user_id = callback.from_user.id
     data = user_data.get(user_id, {})
-    state = data.get("state")
 
-    if state == "waiting_for_place":
-        data["birth_place"] = text
+    if callback.data == "place_no":
+        places = data.get("place_options", [])
+
+        if not places:
+            data["state"] = "waiting_for_place"
+            user_data[user_id] = data
+
+            await callback.message.answer(
+                "Хорошо. Введите место рождения подробнее.\n\n"
+                "Например:\n"
+                "<b>Агадир, Марокко</b>"
+            )
+            await callback.answer()
+            return
+
+        buttons = []
+
+        for index, place in enumerate(places):
+            buttons.append([
+                InlineKeyboardButton(
+                    text=f"✅ {place['name'][:60]}",
+                    callback_data=f"place_select_{index}"
+                )
+            ])
+
+        buttons.append([
+            InlineKeyboardButton(
+                text="Ввести заново",
+                callback_data="place_enter_again"
+            )
+        ])
+
+        keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+
+        await callback.message.answer(
+            "Выберите подходящее место рождения:",
+            reply_markup=keyboard
+        )
+        await callback.answer()
+        return
+
+    if callback.data == "place_enter_again":
+        data["state"] = "waiting_for_place"
         user_data[user_id] = data
 
-        await message.answer(
-            "Принял место рождения. Сейчас рассчитываю положение Солнца..."
+        await callback.message.answer(
+            "Введите место рождения подробнее.\n\n"
+            "Например:\n"
+            "<b>Агадир, Марокко</b>"
         )
+        await callback.answer()
+        return
+
+    if callback.data.startswith("place_select_"):
+        index = int(callback.data.replace("place_select_", ""))
+        places = data.get("place_options", [])
+
+        if index >= len(places):
+            await callback.message.answer(
+                "Не удалось выбрать это место. Попробуйте ввести город заново."
+            )
+            await callback.answer()
+            return
+
+        selected_place = places[index]
+
+        data["birth_place"] = selected_place["name"]
+        data["state"] = None
+        user_data[user_id] = data
 
         result = calculate_sun_sign(
             data.get("birth_date"),
@@ -227,6 +317,89 @@ async def handle_message(message: Message):
             data["state"] = "waiting_for_place"
             user_data[user_id] = data
 
+            await callback.message.answer(
+                "Не удалось выполнить расчет по выбранному месту.\n\n"
+                "Попробуйте ввести место рождения подробнее."
+            )
+            await callback.answer()
+            return
+
+        sign = result["sign"]
+        element = ELEMENTS[sign]["name"]
+
+        await callback.message.answer(
+            f"Расчет выполнен по данным:\n"
+            f"<b>{data.get('birth_date')}, {data.get('birth_time')}</b>\n"
+            f"<b>{data.get('birth_place')}</b>\n\n"
+            f"Ваш знак зодиака — <b>{sign}</b>\n\n"
+            f"В момент вашего рождения Солнце находилось в знаке стихии <b>{element}</b>.\n\n"
+            "Даже не сомневайтесь. Теперь вы точно знаете."
+        )
+        await callback.answer()
+        return
+
+    if callback.data == "place_yes":
+        places = data.get("place_options", [])
+
+        if not places:
+            data["state"] = "waiting_for_place"
+            user_data[user_id] = data
+
+            await callback.message.answer(
+                "Не удалось подтвердить место. Введите место рождения заново."
+            )
+            await callback.answer()
+            return
+
+        selected_place = places[0]
+
+        data["birth_place"] = selected_place["name"]
+        data["state"] = None
+        user_data[user_id] = data
+
+        result = calculate_sun_sign(
+            data.get("birth_date"),
+            data.get("birth_time"),
+            data.get("birth_place")
+        )
+
+        if result is None:
+            data["state"] = "waiting_for_place"
+            user_data[user_id] = data
+
+            await callback.message.answer(
+                "Не удалось выполнить расчет по найденному месту.\n\n"
+                "Попробуйте ввести место рождения подробнее."
+            )
+            await callback.answer()
+            return
+
+        sign = result["sign"]
+        element = ELEMENTS[sign]["name"]
+
+        await callback.message.answer(
+            f"Расчет выполнен по данным:\n"
+            f"<b>{data.get('birth_date')}, {data.get('birth_time')}</b>\n"
+            f"<b>{data.get('birth_place')}</b>\n\n"
+            f"Ваш знак зодиака — <b>{sign}</b>\n\n"
+            f"В момент вашего рождения Солнце находилось в знаке стихии <b>{element}</b>.\n\n"
+            "Даже не сомневайтесь. Теперь вы точно знаете."
+        )
+        await callback.answer()
+        return
+
+
+@dp.message()
+async def handle_message(message: Message):
+    user_id = message.from_user.id
+    text = message.text.strip()
+    data = user_data.get(user_id, {})
+    state = data.get("state")
+
+    if state == "waiting_for_place":
+        places = find_places(text)
+
+        if not places:
             await message.answer(
                 "Не удалось определить место рождения.\n\n"
                 "Попробуйте ввести город подробнее.\n\n"
@@ -238,19 +411,26 @@ async def handle_message(message: Message):
             )
             return
 
-        sign = result["sign"]
-        element = ELEMENTS[sign]["name"]
-
-        data["state"] = None
+        data["birth_place"] = text
+        data["place_options"] = places
+        data["selected_place_index"] = 0
+        data["state"] = "confirming_place"
         user_data[user_id] = data
 
+        keyboard = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(text="✅ Да", callback_data="place_yes"),
+                    InlineKeyboardButton(text="❌ Нет", callback_data="place_no"),
+                ]
+            ]
+        )
+
         await message.answer(
-            f"Расчет выполнен по данным:\n"
-            f"<b>{data.get('birth_date')}, {data.get('birth_time')}</b>\n"
-            f"<b>{data.get('birth_place')}</b>\n\n"
-            f"Ваш знак зодиака — <b>{sign}</b>\n\n"
-            f"В момент вашего рождения Солнце находилось в знаке стихии <b>{element}</b>.\n\n"
-            "Даже не сомневайтесь. Теперь вы точно знаете."
+            f"Я нашел место рождения:\n"
+            f"<b>{places[0]['name']}</b>\n\n"
+            f"Это верно?",
+            reply_markup=keyboard
         )
         return
 
