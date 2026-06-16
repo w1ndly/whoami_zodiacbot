@@ -517,7 +517,7 @@ async def handle_message(message: Message):
         return
 
     
-        if callback.data.startswith("transition_place_"):
+    if callback.data.startswith("transition_place_"):
         index = int(callback.data.replace("transition_place_", ""))
 
         place_options = data.get("place_options", [])
