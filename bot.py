@@ -586,7 +586,7 @@ async def handle_message(message: Message):
         for index, place in enumerate(places):
             buttons.append([
                 InlineKeyboardButton(
-                    text=short_place_name(place["name"]),
+                    text=f"🌍 {short_place_name(place['name'])}",
                     callback_data=f"transition_place_{index}"
                 )
             ])
@@ -594,8 +594,8 @@ async def handle_message(message: Message):
         keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
 
         await message.answer(
-            "Я нашел несколько вариантов.\n\n"
-            "Выберите место рождения:",
+            "🌍 Я нашел несколько подходящих вариантов.\n\n"
+            "Пожалуйста, выберите место рождения:",
             reply_markup=keyboard
         )
         return
