@@ -237,9 +237,12 @@ async def handle_message(message: Message):
         element = ELEMENTS[sign]["name"]
 
         await message.answer(
+            f"Расчет выполнен по данным:\n"
+            f"<b>{data.get('birth_date')}, {data.get('birth_time')}</b>\n"
+            f"<b>{data.get('birth_place')}</b>\n\n"
             f"Ваш знак зодиака — <b>{sign}</b>\n\n"
             f"В момент вашего рождения Солнце находилось в знаке стихии <b>{element}</b>.\n\n"
-            "Даже не сомневайтесь. Ведь теперь вы точно знаете."
+            "Даже не сомневайтесь. Теперь вы точно знаете."
         )
         return
 
@@ -312,7 +315,7 @@ async def handle_message(message: Message):
     await message.answer(
         f"Ваш знак зодиака — <b>{sign}</b>\n\n"
         f"В момент вашего рождения Солнце находилось в знаке стихии <b>{element}</b>.\n\n"
-        "Даже не сомневайтесь. Ведь теперь вы точно знаете."
+        "Даже не сомневайтесь. Теперь вы точно знаете."
     )
 
 
