@@ -19,7 +19,7 @@ bot = Bot(
 )
 dp = Dispatcher()
 
-user_states = {}
+user_data = {}
 
 
 def get_zodiac_sign(day: int, month: int) -> str:
@@ -72,7 +72,7 @@ def is_border_date(day: int, month: int) -> bool:
 
 @dp.message(CommandStart())
 async def start(message: Message):
-    user_states.pop(message.from_user.id, None)
+    user_data.pop(message.from_user.id, None)
 
     await message.answer(
         "Кто я по знаку? ✨\n\n"
@@ -86,7 +86,7 @@ async def start(message: Message):
 
 @dp.message(Command("clear"))
 async def clear(message: Message):
-    user_states.pop(message.from_user.id, None)
+    user_data.pop(message.from_user.id, None)
 
     await message.answer(
         "✨ Все введенные данные очищены.\n\n"
@@ -115,18 +115,25 @@ async def help_command(message: Message):
 async def handle_message(message: Message):
     user_id = message.from_user.id
     text = message.text.strip()
+    data = user_data.get(user_id, {})
+    state = data.get("state")
 
-    if user_states.get(user_id) == "waiting_for_place":
-        birth_place = text
-        user_states.pop(user_id, None)
+    if state == "waiting_for_place":
+        data["birth_place"] = text
+        data["state"] = None
+        user_data[user_id] = data
 
         await message.answer(
-            f"Место рождения принято: <b>{birth_place}</b>.\n\n"
-            "Следующим шагом мы подключим эфемериды, часовые пояса и рассчитаем точный знак по дате, времени и месту рождения."
+            f"Место рождения принято: <b>{text}</b>.\n\n"
+            "Теперь у меня есть все данные для точного расчета знака:\n\n"
+            f"Дата рождения: <b>{data.get('birth_date')}</b>\n"
+            f"Время рождения: <b>{data.get('birth_time')}</b>\n"
+            f"Место рождения: <b>{data.get('birth_place')}</b>\n\n"
+            "Следующим шагом мы подключим эфемериды и рассчитаем точное положение Солнца."
         )
         return
 
-    if user_states.get(user_id) == "waiting_for_time":
+    if state == "waiting_for_time":
         try:
             birth_time = datetime.strptime(text, "%H:%M")
         except ValueError:
@@ -140,8 +147,10 @@ async def handle_message(message: Message):
                 "Не знаю"
             )
             return
-    
-        user_states[user_id] = "waiting_for_place"
+
+        data["birth_time"] = birth_time.strftime("%H:%M")
+        data["state"] = "waiting_for_place"
+        user_data[user_id] = data
 
         await message.answer(
             f"Время рождения принято: <b>{birth_time.strftime('%H:%M')}</b>.\n\n"
@@ -168,7 +177,14 @@ async def handle_message(message: Message):
     month = birth_date.month
 
     if is_border_date(day, month):
-        user_states[user_id] = "waiting_for_time"
+        user_data[user_id] = {
+            "state": "waiting_for_time",
+            "birth_date": birth_date.strftime("%d.%m.%Y"),
+            "birth_time": None,
+            "birth_place": None,
+            "is_border_date": True,
+            "is_paid": False,
+        }
 
         await message.answer(
             f"✨ Вы родились в пограничную дату между двумя знаками: <b>{birth_date.strftime('%d.%m.%Y')}</b>.\n\n"
