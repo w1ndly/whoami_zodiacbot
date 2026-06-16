@@ -96,6 +96,21 @@ async def clear(message: Message):
     )
 
 
+@dp.message(Command("help"))
+async def help_command(message: Message):
+    await message.answer(
+        "✨ Я помогу определить ваш знак Зодиака окончательно и бескомпромиссно.\n\n"
+        "Доступные команды:\n"
+        "/start — начать сначала\n"
+        "/clear — очистить введенные данные\n"
+        "/help — показать эту справку\n\n"
+        "Просто отправьте дату рождения в формате:\n"
+        "<b>дд.мм.гггг</b>\n\n"
+        "Например:\n"
+        "23.08.1994"
+    )
+
+
 @dp.message()
 async def handle_message(message: Message):
     user_id = message.from_user.id
