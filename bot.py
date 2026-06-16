@@ -432,6 +432,14 @@ async def handle_callback(callback: CallbackQuery):
         return
 
     if callback.data == "birth_time_no":
+        if not data.get("birth_date"):
+            await callback.message.answer(
+                "Не удалось найти дату рождения.\n\n"
+                "Пожалуйста, начните заново командой /clear."
+            )
+            await callback.answer()
+            return
+
         data["state"] = "waiting_for_transition_place"
         user_data[user_id] = data
 
@@ -466,36 +474,43 @@ async def handle_message(message: Message):
         data["birth_place"] = text
         user_data[user_id] = data
 
+        if not data.get("birth_date"):
+            await message.answer(
+                "Не удалось найти дату рождения.\n\n"
+                "Пожалуйста, начните заново командой /clear."
+            )
+            return
+
         result = find_sun_transition_time(
             data.get("birth_date"),
             data.get("birth_place")
         )
 
-    if result is None:
+        if result is None:
+            await message.answer(
+                "Не удалось рассчитать время перехода Солнца.\n\n"
+                "Попробуйте ввести место рождения подробнее.\n\n"
+                "Например:\n"
+                "<b>Москва, Россия</b>"
+            )
+            return
+
+        from_sign = result["from_sign"]
+        to_sign = result["to_sign"]
+        transition_time = result["transition_time"]
+
+        user_data.pop(user_id, None)
+
         await message.answer(
-            "Не удалось рассчитать время перехода Солнца.\n\n"
-            "Попробуйте ввести место рождения подробнее.\n\n"
-            "Например:\n"
-            "<b>Москва, Россия</b>"
+            f"✨ В этот день Солнце перешло из знака {from_sign} "
+            f"в знак {to_sign} в <b>{transition_time}</b>.\n\n"
+            f"Если вы родились до <b>{transition_time}</b>, "
+            f"то ваш знак зодиака — {from_sign}.\n\n"
+            f"Если вы родились после <b>{transition_time}</b>, "
+            f"то ваш знак зодиака — {to_sign}.\n\n"
+            "Теперь вы знаете. Осталось лишь уточнить точное время своего рождения."
         )
         return
-
-    from_sign = result["from_sign"]
-    to_sign = result["to_sign"]
-    transition_time = result["transition_time"]
-
-    user_data.pop(user_id, None)
-
-    await message.answer(
-        f"✨ В этот день Солнце перешло из знака {from_sign} "
-        f"в знак {to_sign} в <b>{transition_time}</b>.\n\n"
-        f"Если вы родились до <b>{transition_time}</b>, "
-        f"то ваш знак зодиака — {from_sign}.\n\n"
-        f"Если вы родились после <b>{transition_time}</b>, "
-        f"то ваш знак зодиака — {to_sign}.\n\n"
-        "Теперь вы знаете. Осталось лишь уточнить точное время своего рождения."
-    )
-    return
 
 
     if state == "waiting_for_place":
