@@ -1,5 +1,6 @@
 import asyncio
 import os
+import pycountry
 from datetime import datetime
 from zoneinfo import ZoneInfo
  
@@ -169,8 +170,10 @@ def find_places(query: str):
         locations = geolocator.geocode(
             query,
             exactly_one=False,
-            limit=5,
-            addressdetails=True
+            limit=10,
+            addressdetails=True,
+            language="ru",
+            namedetails=True
         )
 
         if not locations:
@@ -178,17 +181,75 @@ def find_places(query: str):
 
         results = []
 
+        query_lower = query.lower()
+
         for location in locations:
+            address = location.raw.get("address", {})
+            country = address.get("country", "")
+
+            score = location.raw.get("importance", 0)
+
+            city = (
+                address.get("city")
+                or address.get("town")
+                or address.get("village")
+                or ""
+
+            ).lower()
+
+            state = address.get("state", "").lower()
+            county = address.get("county", "").lower()
+
+            # Бонус, если название совпадает
+            if query_lower in city:
+                score += 2
+
+            if query_lower in county:
+                score -= 0.5
+
+            if query_lower in state:
+                score -= 0.3
+
             results.append({
                 "name": location.address,
                 "latitude": location.latitude,
-                "longitude": location.longitude
+                "longitude": location.longitude,
+                "importance": score,
+                "country": country,
+                "flag": country_to_flag(country),
             })
+
+        results.sort(
+            key=lambda x: x["importance"],
+            reverse=True
+        )
 
         return results
 
     except GeocoderTimedOut:
         return []
+
+def country_to_flag(country_name: str) -> str:
+    try:
+        country = pycountry.countries.search_fuzzy(country_name)[0]
+        code = country.alpha_2
+
+        return "".join(
+            chr(ord(char) + 127397)
+            for char in code.upper()
+        )
+
+    except Exception:
+        return "🌍"
+
+
+def short_place_name(place):
+    parts = [p.strip() for p in place.split(",")]
+
+    if len(parts) >= 2:
+        return f"{parts[0]}, {parts[-1]}"
+
+    return place
 
 
 @dp.message(CommandStart())
@@ -257,7 +318,7 @@ async def handle_callback(callback: CallbackQuery):
         for index, place in enumerate(places):
             buttons.append([
                 InlineKeyboardButton(
-                    text=f"✅ {place['name'][:60]}",
+                    text=f"{place['flag']} {short_place_name(place['name'])}",
                     callback_data=f"place_select_{index}"
                 )
             ])
@@ -280,6 +341,10 @@ async def handle_callback(callback: CallbackQuery):
 
     if callback.data == "place_enter_again":
         data["state"] = "waiting_for_place"
+
+        data.pop("place_options", None)
+        data.pop("birth_place", None)
+
         user_data[user_id] = data
 
         await callback.message.answer(
@@ -287,6 +352,7 @@ async def handle_callback(callback: CallbackQuery):
             "Например:\n"
             "<b>Агадир, Марокко</b>"
         )
+
         await callback.answer()
         return
 
@@ -305,6 +371,7 @@ async def handle_callback(callback: CallbackQuery):
 
         data["birth_place"] = selected_place["name"]
         data["state"] = None
+        data.pop("place_options", None)
         user_data[user_id] = data
 
         result = calculate_sun_sign(
@@ -355,6 +422,7 @@ async def handle_callback(callback: CallbackQuery):
 
         data["birth_place"] = selected_place["name"]
         data["state"] = None
+        data.pop("place_options", None)
         user_data[user_id] = data
 
         result = calculate_sun_sign(
@@ -396,6 +464,13 @@ async def handle_message(message: Message):
     data = user_data.get(user_id, {})
     state = data.get("state")
 
+    if state == "confirming_place":
+        await message.answer(
+            "Пожалуйста, используйте кнопки ниже для подтверждения места рождения."
+            "Если сообщение потерялось — используйте /clear."
+        )
+        return
+
     if state == "waiting_for_place":
         places = find_places(text)
 
@@ -413,7 +488,6 @@ async def handle_message(message: Message):
 
         data["birth_place"] = text
         data["place_options"] = places
-        data["selected_place_index"] = 0
         data["state"] = "confirming_place"
         user_data[user_id] = data
 
@@ -426,9 +500,11 @@ async def handle_message(message: Message):
             ]
         )
 
+        place = places[0]
+
         await message.answer(
-            f"Я нашел место рождения:\n"
-            f"<b>{places[0]['name']}</b>\n\n"
+            f"Я нашел место рождения:\n\n"
+            f"{place['flag']} <b>{short_place_name(place['name'])}</b>\n\n"
             f"Это верно?",
             reply_markup=keyboard
         )
@@ -436,6 +512,18 @@ async def handle_message(message: Message):
 
 
     if state == "waiting_for_time":
+
+        if text.lower() in ["не знаю", "неизвестно", "нет"]:
+            data["birth_time"] = "12:00"
+            data["state"] = "waiting_for_place"
+            user_data[user_id] = data
+
+            await message.answer(
+                "Хорошо. Будет использовано условное время 12:00.\n\n"
+                "Теперь введите место рождения:"
+            )
+            return
+            
         try:
             birth_time = datetime.strptime(text, "%H:%M")
         except ValueError:
