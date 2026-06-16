@@ -299,7 +299,7 @@ def find_sun_transition_time(birth_date: str, birth_place: str = None, latitude=
         "to_sign": end_sign,
         "transition_time": transition_local.strftime("%H:%M"),
         "timezone": timezone_name,
-        "location_name": location.address,
+        "location_name": final_location_name,
     }
 
 
