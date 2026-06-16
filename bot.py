@@ -5,14 +5,21 @@ from datetime import datetime
 from aiogram import Bot, Dispatcher
 from aiogram.filters import CommandStart
 from aiogram.types import Message
+from aiogram.client.default import DefaultBotProperties
+from aiogram.enums import ParseMode
 from dotenv import load_dotenv
 
 load_dotenv()
 
 TOKEN = os.getenv("BOT_TOKEN")
 
-bot = Bot(token=TOKEN)
+bot = Bot(
+    token=TOKEN,
+    default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN)
+)
 dp = Dispatcher()
+
+user_states = {}
 
 
 def get_zodiac_sign(day: int, month: int) -> str:
@@ -43,6 +50,7 @@ def get_zodiac_sign(day: int, month: int) -> str:
     else:
         return "Не удалось определить знак"
 
+
 def is_border_date(day: int, month: int) -> bool:
     border_dates = {
         1: [20, 21],
@@ -56,7 +64,7 @@ def is_border_date(day: int, month: int) -> bool:
         9: [22, 23],
         10: [22, 23],
         11: [21, 22],
-        12: [21, 22]
+        12: [21, 22],
     }
 
     return day in border_dates.get(month, [])
@@ -64,6 +72,8 @@ def is_border_date(day: int, month: int) -> bool:
 
 @dp.message(CommandStart())
 async def start(message: Message):
+    user_states.pop(message.from_user.id, None)
+
     await message.answer(
         "Кто я по знаку? ✨\n\n"
         "Введите дату рождения, и я помогу определить ваш знак зодиака.\n\n"
@@ -75,8 +85,32 @@ async def start(message: Message):
 
 
 @dp.message()
-async def handle_date(message: Message):
+async def handle_message(message: Message):
+    user_id = message.from_user.id
     text = message.text.strip()
+
+    if user_states.get(user_id) == "waiting_for_time":
+        try:
+            birth_time = datetime.strptime(text, "%H:%M")
+        except ValueError:
+            await message.answer(
+                "Похоже, время введено не в том формате.\n\n"
+                "Введите время так:\n"
+                "чч:мм\n\n"
+                "Например:\n"
+                "14:30\n\n"
+                "Если время неизвестно, напишите:\n"
+                "Не знаю"
+            )
+            return
+
+        user_states.pop(user_id, None)
+
+        await message.answer(
+            f"Время рождения принято: {birth_time.strftime('%H:%M')}.\n\n"
+            "Следующим шагом мы подключим эфемериды и научим меня определять знак точно по времени рождения."
+        )
+        return
 
     try:
         birth_date = datetime.strptime(text, "%d.%m.%Y")
@@ -94,12 +128,14 @@ async def handle_date(message: Message):
     month = birth_date.month
 
     if is_border_date(day, month):
+        user_states[user_id] = "waiting_for_time"
+
         await message.answer(
-            "✨ Вы родились в пограничную дату между двумя знаками.\n\n"
+            f"✨ Вы родились в пограничную дату между двумя знаками: **{birth_date.strftime('%d.%m.%Y')}**.\n\n"
             "Чтобы определить знак точно, мне потребуется время рождения.\n\n"
             "Введите время рождения в формате:\n"
             "чч:мм\n\n"
-            "Или напишите:\n"
+            "Если время неизвестно, напишите:\n"
             "Не знаю"
         )
         return
