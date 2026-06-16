@@ -305,9 +305,14 @@ async def handle_callback(callback: CallbackQuery):
         buttons = []
 
         for index, place in enumerate(places):
+            button_text = f"{place['flag']} {short_place_name(place['name'])}"
+
+            if len(button_text) > 60:
+                button_text = button_text[:57] + "..."
+
             buttons.append([
                 InlineKeyboardButton(
-                    text=f"{place['flag']} {short_place_name(place['name'])}",
+                    text=button_text,
                     callback_data=f"place_select_{index}"
                 )
             ])
