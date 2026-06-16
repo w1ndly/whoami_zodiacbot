@@ -43,6 +43,24 @@ def get_zodiac_sign(day: int, month: int) -> str:
     else:
         return "Не удалось определить знак"
 
+def is_border_date(day: int, month: int) -> bool:
+    border_dates = {
+        1: [20, 21],
+        2: [18, 19],
+        3: [20, 21],
+        4: [20, 21],
+        5: [20, 21],
+        6: [21, 22],
+        7: [22, 23],
+        8: [22, 23],
+        9: [22, 23],
+        10: [22, 23],
+        11: [21, 22],
+        12: [21, 22]
+    }
+
+    return day in border_dates.get(month, [])
+
 
 @dp.message(CommandStart())
 async def start(message: Message):
@@ -74,6 +92,17 @@ async def handle_date(message: Message):
 
     day = birth_date.day
     month = birth_date.month
+
+    if is_border_date(day, month):
+        await message.answer(
+            "✨ Вы родились в пограничную дату между двумя знаками.\n\n"
+            "Чтобы определить знак точно, мне потребуется время рождения.\n\n"
+            "Введите время рождения в формате:\n"
+            "чч:мм\n\n"
+            "Или напишите:\n"
+            "Не знаю"
+        )
+        return
 
     sign = get_zodiac_sign(day, month)
 
