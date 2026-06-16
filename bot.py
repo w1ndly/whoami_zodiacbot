@@ -169,62 +169,29 @@ def find_places(query: str):
         locations = geolocator.geocode(
             query,
             exactly_one=False,
-            limit=10,
-            addressdetails=True,
-            language="ru",
-            namedetails=True
+            limit=5,
+            addressdetails=True
         )
 
         if not locations:
             return []
 
         results = []
-
-        query_lower = query.lower()
+        seen = set()   # ← добавили
 
         for location in locations:
-            address = location.raw.get("address", {})
-            country = address.get("country", "")
 
-            score = location.raw.get("importance", 0)
+            # Если такой адрес уже был — пропускаем
+            if location.address in seen:
+                continue
 
-            city = (
-                address.get("city")
-                or address.get("town")
-                or address.get("village")
-                or ""
-
-            ).lower()
-
-            state = address.get("state", "").lower()
-            county = address.get("county", "").lower()
-
-            # Бонус, если название совпадает
-            if query_lower == city:
-                score += 5
-
-            elif query_lower in city:
-                score += 2
-
-            if query_lower == county:
-                score -= 2
-
-            if query_lower == state:
-                score -= 1
+            seen.add(location.address)
 
             results.append({
                 "name": location.address,
                 "latitude": location.latitude,
-                "longitude": location.longitude,
-                "importance": score,
-                "country": country,
-                "flag": country_to_flag(country),
+                "longitude": location.longitude
             })
-
-        results.sort(
-            key=lambda x: x["importance"],
-            reverse=True
-        )
 
         return results
 
