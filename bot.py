@@ -15,7 +15,7 @@ TOKEN = os.getenv("BOT_TOKEN")
 
 bot = Bot(
     token=TOKEN,
-    default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN)
+    default=DefaultBotProperties(parse_mode=ParseMode.HTML)
 )
 dp = Dispatcher()
 
@@ -131,7 +131,7 @@ async def handle_message(message: Message):
         user_states[user_id] = "waiting_for_time"
 
         await message.answer(
-            f"✨ Вы родились в пограничную дату между двумя знаками: **{birth_date.strftime('%d.%m.%Y')}**.\n\n"
+            f"✨ Вы родились в пограничную дату между двумя знаками: <b>{birth_date.strftime('%d.%m.%Y')}</b>.\n\n"
             "Чтобы определить знак точно, мне потребуется время рождения.\n\n"
             "Введите время рождения в формате:\n"
             "чч:мм\n\n"
