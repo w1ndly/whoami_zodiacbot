@@ -210,6 +210,8 @@ async def handle_message(message: Message):
     state = data.get("state")
 
     if state == "waiting_for_place":
+        data["birth_place"] = text
+        user_data[user_id] = data
 
         await message.answer(
             "Принял место рождения. Сейчас рассчитываю положение Солнца..."
@@ -222,6 +224,9 @@ async def handle_message(message: Message):
         )
 
         if result is None:
+            data["state"] = "waiting_for_place"
+            user_data[user_id] = data
+
             await message.answer(
                 "Не удалось определить место рождения.\n\n"
                 "Попробуйте ввести город подробнее.\n\n"
@@ -249,10 +254,6 @@ async def handle_message(message: Message):
         )
         return
 
-    data["birth_place"] = text
-    data["state"] = None
-    user_data[user_id] = data
-    
 
     if state == "waiting_for_time":
         try:
