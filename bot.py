@@ -462,14 +462,14 @@ async def handle_message(message: Message):
         return
 
 
-if state == "waiting_for_transition_place":
-    data["birth_place"] = text
-    user_data[user_id] = data
+    if state == "waiting_for_transition_place":
+        data["birth_place"] = text
+        user_data[user_id] = data
 
-    result = find_sun_transition_time(
-        data.get("birth_date"),
-        data.get("birth_place")
-    )
+        result = find_sun_transition_time(
+            data.get("birth_date"),
+            data.get("birth_place")
+        )
 
     if result is None:
         await message.answer(
