@@ -44,6 +44,21 @@ ZODIAC_SIGNS = [
     "Рыбы ♓️",
 ]
 
+ELEMENTS = {
+    "Овен ♈️": {"name": "Огня", "emoji": "🔥"},
+    "Телец ♉️": {"name": "Земли", "emoji": "🌿"},
+    "Близнецы ♊️": {"name": "Воздуха", "emoji": "🌬️"},
+    "Рак ♋️": {"name": "Воды", "emoji": "💧"},
+    "Лев ♌️": {"name": "Огня", "emoji": "🔥"},
+    "Дева ♍️": {"name": "Земли", "emoji": "🌿"},
+    "Весы ♎️": {"name": "Воздуха", "emoji": "🌬️"},
+    "Скорпион ♏️": {"name": "Воды", "emoji": "💧"},
+    "Стрелец ♐️": {"name": "Огня", "emoji": "🔥"},
+    "Козерог ♑️": {"name": "Земли", "emoji": "🌿"},
+    "Водолей ♒️": {"name": "Воздуха", "emoji": "🌬️"},
+    "Рыбы ♓️": {"name": "Воды", "emoji": "💧"},
+}
+
 
 def get_zodiac_sign(day: int, month: int) -> str:
     if (month == 3 and day >= 21) or (month == 4 and day <= 20):
@@ -218,15 +233,13 @@ async def handle_message(message: Message):
             )
             return
 
+        sign = result["sign"]
+        element = ELEMENTS[sign]["name"]
+
         await message.answer(
-            f"Ваш знак зодиака — <b>{result['sign']}</b>\n\n"
-            f"Данные расчета:\n"
-            f"Дата рождения: <b>{data.get('birth_date')}</b>\n"
-            f"Время рождения: <b>{data.get('birth_time')}</b>\n"
-            f"Место рождения: <b>{data.get('birth_place')}</b>\n"
-            f"Часовой пояс: <b>{result['timezone']}</b>\n\n"
-            f"В момент вашего рождения Солнце находилось в знаке <b>{result['sign']}</b>.\n\n"
-            f"Даже не сомневайтесь! Теперь вы точно знаете свой знак Зодиака."
+            f"Ваш знак зодиака — <b>{sign}</b>\n\n"
+            f"В момент вашего рождения Солнце находилось в знаке стихии <b>{element}</b>.\n\n"
+            "Даже не сомневайтесь. Ведь теперь вы точно знаете."
         )
         return
 
@@ -294,11 +307,12 @@ async def handle_message(message: Message):
         return
 
     sign = get_zodiac_sign(day, month)
+    element = ELEMENTS[sign]["name"]
 
     await message.answer(
         f"Ваш знак зодиака — <b>{sign}</b>\n\n"
-        f"В момент вашего рождения Солнце находилось в этом знаке.\n\n"
-        f"Теперь никаких сомнений. Вы точно знаете свой знак зодиака."
+        f"В момент вашего рождения Солнце находилось в знаке стихии <b>{element}</b>.\n\n"
+        "Даже не сомневайтесь. Ведь теперь вы точно знаете."
     )
 
 
