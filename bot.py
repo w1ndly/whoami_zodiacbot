@@ -210,9 +210,6 @@ async def handle_message(message: Message):
     state = data.get("state")
 
     if state == "waiting_for_place":
-        data["birth_place"] = text
-        data["state"] = None
-        user_data[user_id] = data
 
         await message.answer(
             "Принял место рождения. Сейчас рассчитываю положение Солнца..."
@@ -226,15 +223,21 @@ async def handle_message(message: Message):
 
         if result is None:
             await message.answer(
-                "Не удалось определить место рождения или часовой пояс.\n\n"
-                "Попробуйте ввести место подробнее, например:\n"
-                "<b>Москва, Россия</b>\n\n"
-                "Или начните заново командой /clear."
+                "Не удалось определить место рождения.\n\n"
+                "Попробуйте ввести город подробнее.\n\n"
+                "Например:\n"
+                "<b>Москва, Россия</b>\n"
+                "<b>Нью-Йорк, США</b>\n"
+                "<b>Лондон, Великобритания</b>\n\n"
+                "Или воспользуйтесь командой /clear, чтобы начать заново."
             )
             return
 
         sign = result["sign"]
         element = ELEMENTS[sign]["name"]
+
+        data["state"] = None
+        user_data[user_id] = data
 
         await message.answer(
             f"Расчет выполнен по данным:\n"
@@ -245,6 +248,11 @@ async def handle_message(message: Message):
             "Даже не сомневайтесь. Теперь вы точно знаете."
         )
         return
+
+    data["birth_place"] = text
+    data["state"] = None
+    user_data[user_id] = data
+    
 
     if state == "waiting_for_time":
         try:
