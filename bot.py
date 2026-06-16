@@ -1,6 +1,5 @@
 import asyncio
 import os
-import pycountry
 from datetime import datetime
 from zoneinfo import ZoneInfo
  
@@ -201,14 +200,17 @@ def find_places(query: str):
             county = address.get("county", "").lower()
 
             # Бонус, если название совпадает
-            if query_lower in city:
+            if query_lower == city:
+                score += 5
+
+            elif query_lower in city:
                 score += 2
 
-            if query_lower in county:
-                score -= 0.5
+            if query_lower == county:
+                score -= 2
 
-            if query_lower in state:
-                score -= 0.3
+            if query_lower == state:
+                score -= 1
 
             results.append({
                 "name": location.address,
@@ -229,18 +231,38 @@ def find_places(query: str):
     except GeocoderTimedOut:
         return []
 
+FLAGS = {
+    "Russian Federation": "🇷🇺",
+    "Россия": "🇷🇺",
+
+    "Morocco": "🇲🇦",
+    "Марокко": "🇲🇦",
+
+    "Kazakhstan": "🇰🇿",
+    "Казахстан": "🇰🇿",
+
+    "United States": "🇺🇸",
+    "США": "🇺🇸",
+
+    "United Kingdom": "🇬🇧",
+    "Великобритания": "🇬🇧",
+
+    "France": "🇫🇷",
+    "Франция": "🇫🇷",
+
+    "Germany": "🇩🇪",
+    "Германия": "🇩🇪",
+
+    "Spain": "🇪🇸",
+    "Испания": "🇪🇸",
+
+    "Italy": "🇮🇹",
+    "Италия": "🇮🇹",
+}
+
+
 def country_to_flag(country_name: str) -> str:
-    try:
-        country = pycountry.countries.search_fuzzy(country_name)[0]
-        code = country.alpha_2
-
-        return "".join(
-            chr(ord(char) + 127397)
-            for char in code.upper()
-        )
-
-    except Exception:
-        return "🌍"
+    return FLAGS.get(country_name, "🌍")
 
 
 def short_place_name(place):
@@ -523,7 +545,7 @@ async def handle_message(message: Message):
                 "Теперь введите место рождения:"
             )
             return
-            
+
         try:
             birth_time = datetime.strptime(text, "%H:%M")
         except ValueError:
