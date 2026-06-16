@@ -328,13 +328,14 @@ async def handle_message(message: Message):
         sign = result["sign"]
         element = ELEMENTS[sign]["name"]
 
+        data["birth_place"] = result["location_name"]
         data["state"] = None
         user_data[user_id] = data
 
         await message.answer(
             f"Расчет выполнен по данным:\n"
             f"<b>{data.get('birth_date')}, {data.get('birth_time')}</b>\n"
-            f"<b>{data.get('birth_place')}</b>\n\n"
+            f"<b>{result.get('location_name')}</b>\n\n"
             f"Ваш знак зодиака — <b>{sign}</b>\n\n"
             f"В момент вашего рождения Солнце находилось в знаке стихии <b>{element}</b>.\n\n"
             "Даже не сомневайтесь. Теперь вы точно знаете."
@@ -399,7 +400,7 @@ async def handle_message(message: Message):
 
     if is_border_date(day, month):
         user_data[user_id] = {
-            "state": "waiting_for_time",
+            "state": "border_time_question",
             "birth_date": birth_date.strftime("%d.%m.%Y"),
             "birth_time": None,
             "birth_place": None,
@@ -407,16 +408,27 @@ async def handle_message(message: Message):
             "is_paid": False,
         }
 
+        keyboard = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(text="✅ Да", callback_data="birth_time_yes"),
+                    InlineKeyboardButton(text="❌ Нет", callback_data="birth_time_no"),
+                ]
+            ]
+        )
+
         await message.answer(
-            f"✨ Вы родились в пограничную дату между двумя знаками: <b>{birth_date.strftime('%d.%m.%Y')}</b>.\n\n"
-            "Чтобы определить знак точно, мне потребуется время рождения.\n\n"
-            "Введите время рождения в формате:\n"
-            "чч:мм\n\n"
-            "Если время неизвестно, напишите:\n"
-            "Не знаю"
+            "Вы родились в пограничный день ✨\n"
+            "В этот день Солнце переходило из одного знака зодиака в другой.\n\n"
+            "Возможные варианты:\n"
+            "♌️ Лев или ♍️ Дева\n\n"
+            "Без точного времени рождения невозможно определить знак на 100%.\n\n"
+            "Время рождения известно?",
+            reply_markup=keyboard
         )
         return
 
+        
     sign = get_zodiac_sign(day, month)
     element = ELEMENTS[sign]["name"]
 
