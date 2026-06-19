@@ -11,7 +11,7 @@ from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from dotenv import load_dotenv
 from geopy.geocoders import Nominatim
-from geopy.exc import GeocoderTimedOut
+from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 from timezonefinder import TimezoneFinder
 
 load_dotenv()
@@ -167,8 +167,11 @@ def get_border_signs(day: int, month: int):
 
 
 def calculate_sun_sign(birth_date: str, birth_time: str, birth_place: str):
-    location = geolocator.geocode(birth_place, timeout=10)
-
+    try:
+        location = geolocator.geocode(birth_place, timeout=10)
+    except (GeocoderTimedOut, GeocoderServiceError):
+        return None
+        
     if location is None:
         return None
 
@@ -246,7 +249,10 @@ def find_sun_transition_time(birth_date: str, birth_place: str = None, latitude=
         location_longitude = longitude
         final_location_name = location_name or birth_place
     else:
-        location = geolocator.geocode(birth_place, timeout=10)
+        try:
+            location = geolocator.geocode(birth_place, timeout=10)
+        except (GeocoderTimedOut, GeocoderServiceError):
+            return None
 
         if location is None:
             return None
@@ -334,7 +340,7 @@ def find_places(query: str):
 
         return results
 
-    except GeocoderTimedOut:
+    except (GeocoderTimedOut, GeocoderServiceError):
         return []
 
 FLAGS = {
