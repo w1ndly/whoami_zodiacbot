@@ -269,7 +269,7 @@ def calculate_sun_sign(birth_date: str, birth_time: str, birth_place: str):
         "degrees": degrees,
         "minutes": minutes,
         "timezone": timezone_name,
-        "location_name": final_location_name,
+        "location_name": location.address,
     }
 
 
