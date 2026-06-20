@@ -48,6 +48,57 @@ ZODIAC_SIGNS = [
     "Рыбы ♓️",
 ]
 
+ZODIAC_INFO = {
+    "Овен": {
+        "symbol": "♈️",
+        "element": "Огонь 🔥"
+    },
+    "Телец": {
+        "symbol": "♉️",
+        "element": "Земля 🌱"
+    },
+    "Близнецы": {
+        "symbol": "♊️",
+        "element": "Воздух 🌬"
+    },
+    "Рак": {
+        "symbol": "♋️",
+        "element": "Вода 💧"
+    },
+    "Лев": {
+        "symbol": "♌️",
+        "element": "Огонь 🔥"
+    },
+    "Дева": {
+        "symbol": "♍️",
+        "element": "Земля 🌱"
+    },
+    "Весы": {
+        "symbol": "♎️",
+        "element": "Воздух 🌬"
+    },
+    "Скорпион": {
+        "symbol": "♏️",
+        "element": "Вода 💧"
+    },
+    "Стрелец": {
+        "symbol": "♐️",
+        "element": "Огонь 🔥"
+    },
+    "Козерог": {
+        "symbol": "♑️",
+        "element": "Земля 🌱"
+    },
+    "Водолей": {
+        "symbol": "♒️",
+        "element": "Воздух 🌬"
+    },
+    "Рыбы": {
+        "symbol": "♓️",
+        "element": "Вода 💧"
+    }
+}
+
 ELEMENTS = {
     "Овен ♈️": {"name": "Огня", "emoji": "🔥"},
     "Телец ♉️": {"name": "Земли", "emoji": "🌿"},
@@ -171,7 +222,7 @@ def calculate_sun_sign(birth_date: str, birth_time: str, birth_place: str):
         location = geolocator.geocode(birth_place, timeout=10)
     except (GeocoderTimedOut, GeocoderServiceError):
         return None
-        
+
     if location is None:
         return None
 
@@ -348,9 +399,6 @@ FLAGS = {
     "Россия": "🇷🇺",
     "РФ": "🇷🇺",
 
-    "Morocco": "🇲🇦",
-    "Марокко": "🇲🇦",
-
     "Kazakhstan": "🇰🇿",
     "Казахстан": "🇰🇿",
 
@@ -377,6 +425,13 @@ FLAGS = {
     "Italy": "🇮🇹",
     "Italia": "🇮🇹",
     "Италия": "🇮🇹",
+
+    "Morocco": "🇲🇦",
+    "Марокко": "🇲🇦",
+
+    "Ukraine": "🇮🇹",
+    "Украина": "🇮🇹",
+    "Ukraina": "🇮🇹",
 }
 
 
@@ -516,8 +571,9 @@ async def handle_callback(callback: CallbackQuery):
 
         if index >= len(place_options):
             await callback.message.answer(
-                "Не удалось выбрать место рождения.\n\n"
-                "Пожалуйста, введите город еще раз."
+                "Похоже, этот вариант уже устарел.\n\n"
+                "Пожалуйста, выберите город из последнего сообщения бота "
+                "или введите место рождения еще раз."
             )
             await callback.answer()
             return
@@ -731,13 +787,20 @@ async def handle_message(message: Message):
         data["state"] = None
         user_data[user_id] = data
 
+
+## РАСЧЕТ ПО ДАННЫМ
+
+        symbol = ZODIAC_INFO[sign]["symbol"]
+
         await message.answer(
-            f"Расчет выполнен по данным:\n"
-            f"<b>{data.get('birth_date')}, {data.get('birth_time')}</b>\n"
-            f"<b>{result.get('location_name')}</b>\n\n"
-            f"Ваш знак зодиака — <b>{sign}</b>\n\n"
-            f"В момент вашего рождения Солнце находилось в знаке стихии <b>{element}</b>.\n\n"
-            "Даже не сомневайтесь. Теперь вы точно знаете."
+            f"✨ Расчет выполнен по данным:\n\n"
+            f"📅 <b>{data.get('birth_date')}</b>\n"
+            f"🕓 <b>{data.get('birth_time')}</b>\n"
+            f"🌍 <b>{result.get('location_name')}</b>\n\n"
+            f"{symbol} Ваш знак Зодиака — <b>{sign}</b>\n\n"
+            f"Стихия: <b>{element}</b>\n\n"
+            "Теперь никаких сомнений.\n"
+            "Вы точно знаете свой знак Зодиака."
         )
         return
 
@@ -833,10 +896,14 @@ async def handle_message(message: Message):
     sign = get_zodiac_sign(day, month)
     element = ELEMENTS[sign]["name"]
 
+
+    symbol = ZODIAC_INFO[sign]["symbol"]
+
     await message.answer(
-        f"Ваш знак зодиака — <b>{sign}</b>\n\n"
-        f"В момент вашего рождения Солнце находилось в знаке стихии <b>{element}</b>.\n\n"
-        "Даже не сомневайтесь. Теперь вы точно знаете."
+        f"{symbol} Ваш знак Зодиака — <b>{sign}</b>\n\n"
+        f"Стихия: <b>{element}</b>\n\n"
+        "Теперь никаких сомнений.\n"
+        "Вы точно знаете свой знак Зодиака."
     )
 
 
