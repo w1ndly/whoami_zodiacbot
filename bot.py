@@ -790,7 +790,7 @@ async def handle_message(message: Message):
 
 ## РАСЧЕТ ПО ДАННЫМ
 
-        symbol = ZODIAC_INFO[sign]["symbol"]
+        symbol = sign.split()[1]
 
         await message.answer(
             f"✨ Расчет выполнен по данным:\n\n"
@@ -897,7 +897,7 @@ async def handle_message(message: Message):
     element = ELEMENTS[sign]["name"]
 
 
-    symbol = ZODIAC_INFO[sign]["symbol"]
+    symbol = sign.split()[1]
 
     await message.answer(
         f"{symbol} Ваш знак Зодиака — <b>{sign}</b>\n\n"
