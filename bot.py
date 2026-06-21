@@ -18,6 +18,8 @@ load_dotenv()
 
 TOKEN = os.getenv("BOT_TOKEN")
 
+FEEDBACK_CONTACT = "@bogdangloba_chat"
+
 bot = Bot(
     token=TOKEN,
     default=DefaultBotProperties(parse_mode=ParseMode.HTML)
@@ -529,6 +531,16 @@ async def start(message: Message):
         "дд.мм.гггг\n\n"
         "Например:\n"
         "23.08.1994"
+    )
+
+
+@dp.message(Command("feedback"))
+async def cmd_feedback(message: Message):
+    await message.answer(
+        "📩 Обратная связь\n\n"
+        "Если вы заметили ошибку, нашли неточность "
+        "или хотите предложить улучшение бота, напишите нам:\n\n"
+        "@bogdangloba_chat"
     )
 
 
