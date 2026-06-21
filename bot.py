@@ -667,8 +667,11 @@ async def handle_callback(callback: CallbackQuery):
 
         meta = description.get("meta", {})
 
-        if meta.get("ruler"):
-            text += f"\nУправитель: <b>{meta['ruler']}</b>"
+        for title, value in meta.items():
+            text += (
+                f"\n\n<b>{title}</b>\n"
+                f"{value}"
+            )
 
         text += f"\n\n{description['short']}"
 
