@@ -675,17 +675,17 @@ async def handle_callback(callback: CallbackQuery):
         meta = description.get("meta", {})
 
         for title, value in meta.items():
-            text += (
+            free += (
                 f"\n\n<b>{title}</b>\n"
                 f"{value}"
             )
 
-        text += f"\n\n{description['short']}"
+        free += f"\n\n{description['short']}"
 
         for section in description.get("premium", {}).get("sections", []):
-            text += (
+            free += (
                 f"\n\n<b>{section['title']}</b>\n"
-                f"{section['text']}"
+                f"{section['free']}"
             )
 
         await callback.message.answer(free)
