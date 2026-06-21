@@ -659,40 +659,40 @@ async def handle_callback(callback: CallbackQuery):
 
         description = ZODIAC_DESCRIPTIONS.get(sign)
 
-    if description:
-        free = (
-            f"{description['title']}\n\n"
-            f"Стихия: <b>{description['element']}</b>"
-        )
-
-        meta = description.get("meta", {})
-
-        for title, value in meta.items():
-            free += (
-                f"\n\n<b>{title}</b>\n"
-                f"{value}"
+        if description:
+            free = (
+                f"{description['title']}\n\n"
+                f"Стихия: <b>{description['element']}</b>"
             )
 
-        free += f"\n\n{description.get('short', '')}"
+            meta = description.get("meta", {})
 
-        await callback.message.answer(free)
+            for title, value in meta.items():
+                free += (
+                    f"\n\n<b>{title}</b>\n"
+                    f"{value}"
+                )
 
-    else:
-        await callback.message.answer(
-            f"🚧 Расширенное описание знака <b>{sign}</b> находится в разработке.\n\n"
-            "Скоро здесь появятся:\n\n"
-            "• сильные стороны\n"
-            "• таланты\n"
-            "• слабые места\n"
-            "• отношения\n"
-            "• работа и деньги\n"
-            "• рекомендации\n\n"
-            "Следите за обновлениями ✨"
-        )
+            free += f"\n\n{description.get('short', '')}"
+
+            await callback.message.answer(free)
+
+        else:
+            await callback.message.answer(
+                f"🚧 Расширенное описание знака <b>{sign}</b> находится в разработке.\n\n"
+                "Скоро здесь появятся:\n\n"
+                "• сильные стороны\n"
+                "• таланты\n"
+                "• слабые места\n"
+                "• отношения\n"
+                "• работа и деньги\n"
+                "• рекомендации\n\n"
+                "Следите за обновлениями ✨"
+            )
 
         await callback.answer()
         return
-
+        
     if callback.data.startswith("transition_place_"):
         index = int(callback.data.replace("transition_place_", ""))
 
