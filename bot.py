@@ -660,10 +660,17 @@ async def handle_callback(callback: CallbackQuery):
         description = ZODIAC_DESCRIPTIONS.get(sign)
 
     if description:
-        text = (
+        free = (
             f"{description['title']}\n\n"
-            f"Стихия: <b>{description['element']}</b>"
+            f"Стихия: <b>{description['element']}</b>\n\n"
         )
+
+        meta = description.get("meta", {})
+
+        if meta.get("Управитель"):
+            free += f"Управитель: {meta['Управитель']}\n\n"
+
+        free += description.get("short", "")
 
         meta = description.get("meta", {})
 
@@ -681,7 +688,9 @@ async def handle_callback(callback: CallbackQuery):
                 f"{section['text']}"
             )
 
-        await callback.message.answer(text)
+        await callback.message.answer(free)
+
+        premium = description.get("premium", {})
 
     else:
         await callback.message.answer(
