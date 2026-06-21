@@ -675,7 +675,7 @@ async def handle_callback(callback: CallbackQuery):
 
         text += f"\n\n{description['short']}"
 
-        for section in description.get("sections", []):
+        for section in description.get("premium", {}).get("sections", []):
             text += (
                 f"\n\n<b>{section['title']}</b>\n"
                 f"{section['text']}"
