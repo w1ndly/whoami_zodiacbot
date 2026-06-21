@@ -653,9 +653,11 @@ async def handle_callback(callback: CallbackQuery):
         await callback.answer()
         return
 
-    if callback.data == "sign_more":
+    if callback.data.startswith("sign_more_"):
+        sign = callback.data.replace("sign_more_", "")
+
         await callback.message.answer(
-            "🚧 Расширенное описание знаков находится в разработке.\n\n"
+            f"🚧 Расширенное описание знака <b>{sign}</b> находится в разработке.\n\n"
             "Скоро здесь появятся:\n\n"
             "• сильные стороны\n"
             "• таланты\n"
@@ -943,17 +945,19 @@ async def handle_message(message: Message):
             [
                 InlineKeyboardButton(
                     text="✨ Подробнее о моем знаке",
-                    callback_data="sign_more"
+                    callback_data=f"sign_more{sign}"
                 )
             ]
         ]
     )
 
+## ПРОСТОЙ ОТВЕТ
+
     await message.answer(
         f"{symbol} Ваш знак Зодиака — <b>{sign}</b>\n\n"
         f"Стихия: <b>{element}</b>\n\n"
         "Теперь никаких сомнений.\n"
-        "Вы точно знаете свой знак Зодиака.",
+        "Вы точно знаете свой знак Зодиака.\n",
         reply_markup=keyboard
     )
 
