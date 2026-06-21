@@ -662,15 +662,8 @@ async def handle_callback(callback: CallbackQuery):
     if description:
         free = (
             f"{description['title']}\n\n"
-            f"Стихия: <b>{description['element']}</b>\n\n"
+            f"Стихия: <b>{description['element']}</b>"
         )
-
-        meta = description.get("meta", {})
-
-        if meta.get("Управитель"):
-            free += f"Управитель: {meta['Управитель']}\n\n"
-
-        free += description.get("short", "")
 
         meta = description.get("meta", {})
 
@@ -680,13 +673,7 @@ async def handle_callback(callback: CallbackQuery):
                 f"{value}"
             )
 
-        free += f"\n\n{description['short']}"
-
-        for section in description.get("premium", {}).get("sections", []):
-            free += (
-                f"\n\n<b>{section['title']}</b>\n"
-                f"{section['free']}"
-            )
+        free += f"\n\n{description.get('short', '')}"
 
         await callback.message.answer(free)
 
