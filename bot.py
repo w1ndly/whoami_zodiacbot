@@ -675,7 +675,21 @@ async def handle_callback(callback: CallbackQuery):
 
             free += f"\n\n{description.get('short', '')}"
 
-            await callback.message.answer(free)
+            premium_keyboard = InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [
+                        InlineKeyboardButton(
+                            text="🔒 Полное описание знака",
+                            callback_data=f"sign_premium_{sign}"
+                        )
+                    ]
+                ]
+            )
+
+            await callback.message.answer(
+                free,
+                reply_markup=premium_keyboard
+            )
 
         else:
             await callback.message.answer(
@@ -692,7 +706,28 @@ async def handle_callback(callback: CallbackQuery):
 
         await callback.answer()
         return
-        
+
+## КНОПКА ПЛАТКИ
+
+    if callback.data.startswith("sign_premium_"):
+        sign = callback.data.replace("sign_premium_", "")
+
+        await callback.message.answer(
+            f"🔒 Полное описание знака <b>{sign}</b> станет доступно в ближайшем обновлении.\n\n"
+            "В расширенную версию войдут:\n\n"
+            "• подробный разбор характера\n"
+            "• отношения и совместимость\n"
+            "• типичные партнеры\n"
+            "• темные стороны\n"
+            "• сексуальность\n"
+            "• авторские рекомендации\n\n"
+            "Следите за обновлениями ✨"
+        )
+
+        await callback.answer()
+        return
+
+
     if callback.data.startswith("transition_place_"):
         index = int(callback.data.replace("transition_place_", ""))
 
