@@ -653,6 +653,22 @@ async def handle_callback(callback: CallbackQuery):
         await callback.answer()
         return
 
+    if callback.data == "sign_more":
+        await callback.message.answer(
+            "🚧 Расширенное описание знаков находится в разработке.\n\n"
+            "Скоро здесь появятся:\n\n"
+            "• сильные стороны\n"
+            "• таланты\n"
+            "• слабые места\n"
+            "• отношения\n"
+            "• работа и деньги\n"
+            "• рекомендации\n\n"
+            "Следите за обновлениями ✨"
+        )
+
+        await callback.answer()
+        return
+
     if callback.data.startswith("transition_place_"):
         index = int(callback.data.replace("transition_place_", ""))
 
@@ -922,11 +938,23 @@ async def handle_message(message: Message):
 
     symbol = sign.split()[1]
 
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="✨ Подробнее о моем знаке",
+                    callback_data="sign_more"
+                )
+            ]
+        ]
+    )
+
     await message.answer(
         f"{symbol} Ваш знак Зодиака — <b>{sign}</b>\n\n"
         f"Стихия: <b>{element}</b>\n\n"
         "Теперь никаких сомнений.\n"
-        "Вы точно знаете свой знак Зодиака."
+        "Вы точно знаете свой знак Зодиака.",
+        reply_markup=keyboard
     )
 
 
