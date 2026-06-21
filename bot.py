@@ -657,17 +657,26 @@ async def handle_callback(callback: CallbackQuery):
     if callback.data.startswith("sign_more_"):
         sign = callback.data.replace("sign_more_", "")
 
-        await callback.message.answer(
-            f"🚧 Расширенное описание знака <b>{sign}</b> находится в разработке.\n\n"
-            "Скоро здесь появятся:\n\n"
-            "• сильные стороны\n"
-            "• таланты\n"
-            "• слабые места\n"
-            "• отношения\n"
-            "• работа и деньги\n"
-            "• рекомендации\n\n"
-            "Следите за обновлениями ✨"
-        )
+        description = ZODIAC_DESCRIPTIONS.get(sign)
+
+        if description:
+            await callback.message.answer(
+                f"{description['title']}\n\n"
+                f"Стихия: <b>{description['element']}</b>\n\n"
+                f"{description['short']}"
+            )
+        else:
+            await callback.message.answer(
+                f"🚧 Расширенное описание знака <b>{sign}</b> находится в разработке.\n\n"
+                "Скоро здесь появятся:\n\n"
+                "• сильные стороны\n"
+                "• таланты\n"
+                "• слабые места\n"
+                "• отношения\n"
+                "• работа и деньги\n"
+                "• рекомендации\n\n"
+                "Следите за обновлениями ✨"
+            )
 
         await callback.answer()
         return
