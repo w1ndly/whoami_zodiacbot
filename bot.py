@@ -939,13 +939,15 @@ async def handle_message(message: Message):
 
 
     symbol = sign.split()[1]
-
+    
+    sign_name = sign.split()[0]
+    
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
                     text="✨ Подробнее о моем знаке",
-                    callback_data=f"sign_more{sign}"
+                    callback_data=f"sign_more_{sign_name}"
                 )
             ]
         ]
