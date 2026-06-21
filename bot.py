@@ -690,8 +690,6 @@ async def handle_callback(callback: CallbackQuery):
 
         await callback.message.answer(free)
 
-        premium = description.get("premium", {})
-
     else:
         await callback.message.answer(
             f"🚧 Расширенное описание знака <b>{sign}</b> находится в разработке.\n\n"
