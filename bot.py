@@ -662,9 +662,15 @@ async def handle_callback(callback: CallbackQuery):
     if description:
         text = (
             f"{description['title']}\n\n"
-            f"Стихия: <b>{description['element']}</b>\n\n"
-            f"{description['short']}"
+            f"Стихия: <b>{description['element']}</b>"
         )
+
+        meta = description.get("meta", {})
+
+        if meta.get("ruler"):
+            text += f"\nУправитель: <b>{meta['ruler']}</b>"
+
+        text += f"\n\n{description['short']}"
 
         for section in description.get("sections", []):
             text += (
@@ -673,7 +679,7 @@ async def handle_callback(callback: CallbackQuery):
             )
 
         await callback.message.answer(text)
-        
+
     else:
         await callback.message.answer(
             f"🚧 Расширенное описание знака <b>{sign}</b> находится в разработке.\n\n"
