@@ -1,6 +1,7 @@
 import asyncio
 import os
 from datetime import datetime, timedelta
+from zodiac_data import ZODIAC_DESCRIPTIONS
 from zoneinfo import ZoneInfo
  
 import swisseph as swe
