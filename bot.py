@@ -847,7 +847,7 @@ async def handle_callback(callback: CallbackQuery):
                 ],
                 [
                     InlineKeyboardButton(
-                        text="🔮 Рекомендации на текущий период",
+                        text="🔮 Рекомендации на период",
                         callback_data=f"premium_recommendation_{sign}"
                     )
                 ],
@@ -862,6 +862,48 @@ async def handle_callback(callback: CallbackQuery):
 
         await callback.answer()
         return
+
+    
+        if callback.data.startswith("premium_section_"):
+        raw_data = callback.data.replace("premium_section_", "")
+
+        sign, section_title = raw_data.split("_", 1)
+
+        description = ZODIAC_DESCRIPTIONS.get(sign)
+
+        if not description:
+            await callback.message.edit_text(
+                "Не удалось найти описание этого знака."
+            )
+            await callback.answer()
+            return
+
+        premium = description.get("premium", {})
+        section_text = premium.get(section_title)
+
+        if not section_text:
+            section_text = "Этот раздел находится в разработке."
+
+        back_keyboard = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text="⬅️ К списку разделов",
+                        callback_data=f"sign_premium_{sign}"
+                    )
+                ]
+            ]
+        )
+
+        await callback.message.edit_text(
+            f"<b>{section_title}</b>\n\n"
+            f"{section_text}",
+            reply_markup=back_keyboard
+        )
+
+        await callback.answer()
+        return
+
 
     if callback.data == "birth_time_no":
         if not data.get("birth_date"):
