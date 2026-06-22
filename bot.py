@@ -905,21 +905,11 @@ async def handle_callback(callback: CallbackQuery):
         if not section_text:
             section_text = "Этот раздел находится в разработке."
 
-        back_keyboard = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [
-                    InlineKeyboardButton(
-                        text=f"⬅️ Назад к {dative} {symbol}",
-                        callback_data=f"sign_premium_{sign}",
-                        dative = SIGN_DATIVE.get(sign, sign)
-                    )
-                ]
-            ]
-        )
-
         sign_info = ZODIAC_INFO.get(sign, {})
         symbol = sign_info.get("symbol", "")
         dative = SIGN_DATIVE.get(sign, sign)
+        genitive = SIGN_GENITIVE.get(sign, sign)
+        icon = SECTION_ICONS.get(section_title, "")
 
         back_keyboard = InlineKeyboardMarkup(
             inline_keyboard=[
@@ -932,6 +922,11 @@ async def handle_callback(callback: CallbackQuery):
             ]
         )
 
+        await callback.message.edit_text(
+            f"<b>{icon} {section_title} {genitive} {symbol}</b>\n\n"
+            f"{section_text}",
+            reply_markup=back_keyboard
+        )
 
         await callback.answer()
         return
