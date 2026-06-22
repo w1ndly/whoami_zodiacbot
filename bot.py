@@ -321,7 +321,6 @@ def find_sun_transition_time(birth_date: str, birth_place: str = None, latitude=
     )
 
     if timezone_name is None:
-        print("DEBUG: timezone_name is None", location_latitude, location_longitude, final_location_name)
         return None
 
     local_start = datetime.strptime(
@@ -684,11 +683,26 @@ async def handle_callback(callback: CallbackQuery):
 
         if result.get("is_transition_day") is False:
             sign = result["sign"]
+            symbol = sign.split()[1]
+            sign_name = sign.split()[0]
+
+            keyboard = InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [
+                        InlineKeyboardButton(
+                            text="✨ Подробнее о моем знаке",
+                            callback_data=f"sign_more_{sign_name}"
+                        )
+                    ]
+                ]
+            )
 
             await callback.message.answer(
                 f"✨ В выбранном месте в эту дату Солнце не переходило из одного знака в другой.\n\n"
                 f"В течение этого дня Солнце находилось в знаке <b>{sign}</b>.\n\n"
-                "Теперь никаких сомнений. Вы точно знаете свой знак Зодиака."
+                "Теперь никаких сомнений.\n"
+                "Вы точно знаете свой знак Зодиака.",
+                reply_markup=keyboard
             )
 
             await callback.answer()
