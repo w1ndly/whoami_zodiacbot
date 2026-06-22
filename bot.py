@@ -924,6 +924,7 @@ async def handle_callback(callback: CallbackQuery):
             ]
         )
 
+
         await callback.answer()
         return
 
