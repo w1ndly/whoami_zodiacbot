@@ -38,12 +38,9 @@ def render_premium_section(sign: str, section_title: str, section_text: str):
 
 
 def get_sign_meta(sign: str):
-    data = ZODIAC_INFO.get(sign, {})
-
     return {
         "sign": sign,
-        "symbol": data.get("symbol", ""),
-        "element": data.get("element", ""),
+        "symbol": "",  # временно убираем зависимость
         "genitive": SIGN_GENITIVE.get(sign, sign),
         "dative": SIGN_DATIVE.get(sign, sign),
     }
