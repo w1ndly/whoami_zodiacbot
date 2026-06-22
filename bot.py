@@ -882,6 +882,11 @@ async def handle_callback(callback: CallbackQuery):
 
         sign, section_title = raw_data.split("_", 1)
 
+        meta = get_sign_meta(sign)
+        symbol = meta["symbol"]
+        dative = meta["dative"]
+        genitive = meta["genitive"]
+
         description = ZODIAC_DESCRIPTIONS.get(sign)
 
         if not description:
