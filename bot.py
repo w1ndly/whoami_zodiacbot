@@ -889,6 +889,7 @@ async def handle_message(message: Message):
 ## РАСЧЕТ ПО ДАННЫМ
 
         symbol = sign.split()[1]
+        
         sign_name = sign.split()[0]
 
         keyboard = InlineKeyboardMarkup(
