@@ -321,6 +321,7 @@ def find_sun_transition_time(birth_date: str, birth_place: str = None, latitude=
     )
 
     if timezone_name is None:
+        print("DEBUG: timezone_name is None", location_latitude, location_longitude, final_location_name)
         return None
 
     local_start = datetime.strptime(
@@ -337,7 +338,12 @@ def find_sun_transition_time(birth_date: str, birth_place: str = None, latitude=
     end_sign = get_sun_sign_at_utc(utc_end)
 
     if start_sign == end_sign:
-        return None
+        return {
+            "is_transition_day": False,
+            "sign": start_sign,
+            "timezone": timezone_name,
+            "location_name": final_location_name,
+        }
 
     left = utc_start
     right = utc_end
@@ -676,11 +682,15 @@ async def handle_callback(callback: CallbackQuery):
             selected_place["name"]
         )
 
-        if result is None:
+        if result.get("is_transition_day") is False:
+            sign = result["sign"]
+
             await callback.message.answer(
-                "Не удалось рассчитать время перехода Солнца для этого места.\n\n"
-                "Попробуйте ввести место рождения подробнее."
+                f"✨ В выбранном месте в эту дату Солнце не переходило из одного знака в другой.\n\n"
+                f"В течение этого дня Солнце находилось в знаке <b>{sign}</b>.\n\n"
+                "Теперь никаких сомнений. Вы точно знаете свой знак Зодиака."
             )
+
             await callback.answer()
             return
 
