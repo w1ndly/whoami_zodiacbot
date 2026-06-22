@@ -977,7 +977,7 @@ async def handle_callback(callback: CallbackQuery):
         )
 
         await callback.message.edit_text(
-            f"🔮 Рекомендации — {sign} {symbol}\n\n"
+            f"🔮 Рекомендации для {dative} {symbol}\n\n"
             f"{recommendation}",
             reply_markup=back_keyboard
         )
