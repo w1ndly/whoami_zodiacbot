@@ -889,6 +889,18 @@ async def handle_message(message: Message):
 ## РАСЧЕТ ПО ДАННЫМ
 
         symbol = sign.split()[1]
+        sign_name = sign.split()[0]
+
+        keyboard = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text="✨ Подробнее о моем знаке",
+                        callback_data=f"sign_more_{sign_name}"
+                    )
+                ]
+            ]
+        )
 
         await message.answer(
             f"✨ Расчет выполнен по данным:\n\n"
@@ -899,6 +911,7 @@ async def handle_message(message: Message):
             f"Стихия: <b>{element}</b>\n\n"
             "Теперь никаких сомнений.\n"
             "Вы точно знаете свой знак Зодиака."
+            reply_markup=keyboard
         )
         return
 
