@@ -36,6 +36,16 @@ dp = Dispatcher()
 
 user_data = {}
 
+SECTION_ICONS = {
+    "Основная сила": "✨",
+    "Стиль жизни": "🌍",
+    "В отношениях": "❤️",
+    "В работе": "💼",
+    "Темная сторона": "🌑",
+    "Сексуальность": "🔥",
+    "Рекомендации на текущий период": "🔮",
+}
+
 geolocator = Nominatim(
     user_agent="whoami_zodiacbot",
     timeout=10
@@ -894,8 +904,12 @@ async def handle_callback(callback: CallbackQuery):
             ]
         )
 
+        sign_info = ZODIAC_INFO.get(sign, {})
+        symbol = sign_info.get("symbol", "")
+        icon = SECTION_ICONS.get(section_title, "")
+
         await callback.message.edit_text(
-            f"<b>{section_title}</b>\n\n"
+            f"<b>{icon} {section_title} — {sign} {symbol}</b>\n\n"
             f"{section_text}",
             reply_markup=back_keyboard
         )
