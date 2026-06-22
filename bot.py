@@ -19,7 +19,7 @@ load_dotenv()
 
 TOKEN = os.getenv("BOT_TOKEN")
 
-FEEDBACK_CONTACT = "@bogdangloba_chat"
+SUPPORT_CONTACT = "@bogdangloba_chat"
 
 bot = Bot(
     token=TOKEN,
@@ -432,9 +432,10 @@ FLAGS = {
     "Morocco": "🇲🇦",
     "Марокко": "🇲🇦",
 
-    "Ukraine": "🇮🇹",
-    "Украина": "🇮🇹",
-    "Ukraina": "🇮🇹",
+    "Ukraine": "🇺🇦",
+    "Украина": "🇺🇦",
+    "Ukraina": "🇺🇦",
+    "Україна": "🇺🇦",
 }
 
 
@@ -547,7 +548,7 @@ async def cmd_feedback(message: Message):
         "📩 Обратная связь\n\n"
         "Если вы заметили ошибку, нашли неточность "
         "или хотите предложить улучшение бота, напишите нам:\n\n"
-        "@bogdangloba_chat"
+        f"{SUPPORT_CONTACT}"
     )
 
 
