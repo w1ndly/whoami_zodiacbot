@@ -588,6 +588,69 @@ async def handle_callback(callback: CallbackQuery):
     user_id = callback.from_user.id
     data = user_data.get(user_id, {})
 
+    if callback.data.startswith("birth_place_"):
+        index = int(callback.data.replace("birth_place_", ""))
+
+        place_options = data.get("place_options", [])
+
+        if index >= len(place_options):
+            await callback.message.answer(
+                "Похоже, этот вариант уже устарел.\n\n"
+                "Пожалуйста, выберите город из последнего сообщения бота "
+                "или введите место рождения еще раз."
+            )
+            await callback.answer()
+            return
+
+        selected_place = place_options[index]
+
+        result = calculate_sun_sign(
+            data.get("birth_date"),
+            data.get("birth_time"),
+            selected_place["name"]
+        )
+
+        if result is None:
+            await callback.message.answer(
+                "Не удалось рассчитать знак для этого места.\n\n"
+                "Попробуйте ввести место рождения подробнее."
+            )
+            await callback.answer()
+            return
+
+        sign = result["sign"]
+        element = ELEMENTS[sign]["name"]
+        symbol = sign.split()[1]
+        sign_name = sign.split()[0]
+
+        keyboard = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text="✨ Подробнее о моем знаке",
+                        callback_data=f"sign_more_{sign_name}"
+                    )
+                ]
+            ]
+        )
+
+        user_data.pop(user_id, None)
+
+        await callback.message.answer(
+            f"✨ Расчет выполнен по данным:\n\n"
+            f"📅 <b>{data.get('birth_date')}</b>\n"
+            f"🕓 <b>{data.get('birth_time')}</b>\n"
+            f"🌍 <b>{selected_place['name']}</b>\n\n"
+            f"{symbol} Ваш знак Зодиака — <b>{sign}</b>\n\n"
+            f"Стихия: <b>{element}</b>\n\n"
+            "Теперь никаких сомнений.\n"
+            "Вы точно знаете свой знак Зодиака.",
+            reply_markup=keyboard
+        )
+
+        await callback.answer()
+        return
+
     if callback.data.startswith("transition_place_"):
         index = int(callback.data.replace("transition_place_", ""))
 
