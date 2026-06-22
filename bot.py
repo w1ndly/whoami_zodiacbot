@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from zodiac_data import (
     ZODIAC_DESCRIPTIONS,
     SIGN_GENITIVE
+    SIGN_DATIVE
 )
 from recommendations import CURRENT_RECOMMENDATIONS
 from zoneinfo import ZoneInfo
@@ -900,8 +901,9 @@ async def handle_callback(callback: CallbackQuery):
             inline_keyboard=[
                 [
                     InlineKeyboardButton(
-                        text="⬅️ К списку разделов",
+                        text=f"⬅️ Назад к {dative} {symbol}"
                         callback_data=f"sign_premium_{sign}"
+                        dative = SIGN_DATIVE.get(sign, sign)
                     )
                 ]
             ]
@@ -909,13 +911,17 @@ async def handle_callback(callback: CallbackQuery):
 
         sign_info = ZODIAC_INFO.get(sign, {})
         symbol = sign_info.get("symbol", "")
-        icon = SECTION_ICONS.get(section_title, "")
-        genitive = SIGN_GENITIVE.get(sign, sign)
+        dative = SIGN_DATIVE.get(sign, sign)
 
-        await callback.message.edit_text(
-            f"<b>{icon} {section_title} {genitive} {symbol}</b>\n\n"
-            f"{section_text}",
-            reply_markup=back_keyboard
+        back_keyboard = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text=f"⬅️ Назад к {dative} {symbol}",
+                        callback_data=f"sign_premium_{sign}"
+                    )
+                ]
+            ]
         )
 
         await callback.answer()
