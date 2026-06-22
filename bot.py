@@ -930,6 +930,37 @@ async def handle_callback(callback: CallbackQuery):
         await callback.answer()
         return
 
+    if callback.data.startswith("premium_recommendation_"):
+        sign = callback.data.replace("premium_recommendation_", "")
+
+        meta = get_sign_meta(sign)
+
+        recommendation = CURRENT_RECOMMENDATIONS.get(sign)
+
+        if not recommendation:
+            recommendation = "Рекомендации пока находятся в разработке."
+
+        back_keyboard = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text=f"⬅️ Назад к {meta['dative']} {meta['symbol']}",
+                        callback_data=f"sign_premium_{sign}"
+                    )
+                ]
+            ]
+        )
+
+        await callback.message.edit_text(
+            f"🔮 Рекомендации — {meta['dative']} {meta['symbol']}\n\n"
+            f"{recommendation}",
+            reply_markup=back_keyboard
+        )
+
+        await callback.answer()
+        return
+
+
     if callback.data == "birth_time_no":
         if not data.get("birth_date"):
             await callback.message.answer(
