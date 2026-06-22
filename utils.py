@@ -1,4 +1,4 @@
-from zodiac_data import ZODIAC_INFO, SIGN_GENITIVE, SIGN_DATIVE
+from zodiac_data import SIGN_GENITIVE, SIGN_DATIVE
 from zodiac_data import ZODIAC_DESCRIPTIONS
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
