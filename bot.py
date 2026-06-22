@@ -631,6 +631,14 @@ async def handle_callback(callback: CallbackQuery):
 
         selected_place = place_options[index]
 
+        if not data.get("birth_date") or not data.get("birth_time"):
+            await callback.message.answer(
+                "Не удалось найти дату или время рождения.\n\n"
+                "Пожалуйста, начните заново командой /clear."
+            )
+            await callback.answer()
+            return
+
         result = calculate_sun_sign(
             data.get("birth_date"),
             data.get("birth_time"),
