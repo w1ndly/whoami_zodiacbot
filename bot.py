@@ -2,6 +2,7 @@ import asyncio
 import os
 from datetime import datetime, timedelta
 from zodiac_data import ZODIAC_DESCRIPTIONS
+from recommendations import CURRENT_RECOMMENDATIONS
 from zoneinfo import ZoneInfo
  
 import swisseph as swe
@@ -20,6 +21,12 @@ load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
 
 SUPPORT_CONTACT = "@bogdangloba_chat"
+
+FREE_CHECKS_PER_MONTH = 10
+
+UNLIMITED_SUBSCRIPTION_PRICE = 59
+
+FULL_SIGN_DESCRIPTION_PRICE = 290
 
 bot = Bot(
     token=TOKEN,
