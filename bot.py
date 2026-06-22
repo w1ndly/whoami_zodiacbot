@@ -850,33 +850,39 @@ async def handle_message(message: Message):
         return
 
     if state == "waiting_for_place":
-        data["birth_place"] = text
-        user_data[user_id] = data
+        places = find_places(text)
 
-        await message.answer(
-            "Принял место рождения. Сейчас рассчитываю положение Солнца..."
-        )
-
-        result = calculate_sun_sign(
-            data.get("birth_date"),
-            data.get("birth_time"),
-            data.get("birth_place")
-        )
-
-        if result is None:
-            data["state"] = "waiting_for_place"
-            user_data[user_id] = data
-
+        if not places:
             await message.answer(
-                "Не удалось определить место рождения.\n\n"
-                "Попробуйте ввести город подробнее.\n\n"
+                "Не нашел такой город.\n\n"
+                "Введите место рождения еще раз в формате:\n"
+                "<b>город, страна</b>\n\n"
                 "Например:\n"
-                "<b>Москва, Россия</b>\n"
-                "<b>Нью-Йорк, США</b>\n"
-                "<b>Лондон, Великобритания</b>\n\n"
-                "Или воспользуйтесь командой /clear, чтобы начать заново."
+                "<b>Москва, Россия</b>"
             )
             return
+
+        data["place_options"] = places
+        user_data[user_id] = data
+
+        buttons = []
+
+        for index, place in enumerate(places):
+            buttons.append([
+                InlineKeyboardButton(
+                    text=f"{country_to_flag(get_country_from_place(place['name']))} {short_place_name(place['name'])}",
+                    callback_data=f"birth_place_{index}"
+                )
+            ])
+
+        keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+
+        await message.answer(
+            "🌍 Я нашел несколько подходящих вариантов.\n\n"
+            "Пожалуйста, выберите место рождения:",
+            reply_markup=keyboard
+        )
+        return
 
         sign = result["sign"]
         element = ELEMENTS[sign]["name"]
