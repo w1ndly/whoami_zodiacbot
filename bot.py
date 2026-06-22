@@ -8,6 +8,7 @@ from zodiac_data import (
 )
 from recommendations import CURRENT_RECOMMENDATIONS
 from zoneinfo import ZoneInfo
+from utils import get_sign_meta
  
 import swisseph as swe
 from aiogram import Bot, Dispatcher
