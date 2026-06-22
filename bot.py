@@ -3,7 +3,7 @@ import os
 from datetime import datetime, timedelta
 from zodiac_data import (
     ZODIAC_DESCRIPTIONS,
-    SIGN_GENITIVE
+    SIGN_GENITIVE,
     SIGN_DATIVE
 )
 from recommendations import CURRENT_RECOMMENDATIONS
