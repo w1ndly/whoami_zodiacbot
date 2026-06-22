@@ -807,21 +807,61 @@ async def handle_callback(callback: CallbackQuery):
     if callback.data.startswith("sign_premium_"):
         sign = callback.data.replace("sign_premium_", "")
 
-        await callback.message.answer(
-            f"🔒 Полное описание знака <b>{sign}</b> станет доступно в ближайшем обновлении.\n\n"
-            "В расширенную версию войдут:\n\n"
-            "• подробный разбор характера\n"
-            "• отношения и совместимость\n"
-            "• типичные партнеры\n"
-            "• темные стороны\n"
-            "• сексуальность\n"
-            "• авторские рекомендации\n\n"
-            "Следите за обновлениями ✨"
+        keyboard = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text="✨ Основная сила",
+                        callback_data=f"premium_section_{sign}_Основная сила"
+                    )
+                ],
+                [
+                    InlineKeyboardButton(
+                        text="🌍 Стиль жизни",
+                        callback_data=f"premium_section_{sign}_Стиль жизни"
+                    )
+                ],
+                [
+                    InlineKeyboardButton(
+                        text="❤️ В отношениях",
+                        callback_data=f"premium_section_{sign}_В отношениях"
+                    )
+                ],
+                [
+                    InlineKeyboardButton(
+                        text="💼 В работе",
+                        callback_data=f"premium_section_{sign}_В работе"
+                    )
+                ],
+                [
+                    InlineKeyboardButton(
+                        text="🌑 Темная сторона",
+                        callback_data=f"premium_section_{sign}_Темная сторона"
+                    )
+                ],
+                [
+                    InlineKeyboardButton(
+                        text="🔥 Сексуальность",
+                        callback_data=f"premium_section_{sign}_Сексуальность"
+                    )
+                ],
+                [
+                    InlineKeyboardButton(
+                        text="🔮 Рекомендации на текущий период",
+                        callback_data=f"premium_recommendation_{sign}"
+                    )
+                ],
+            ]
+        )
+
+        await callback.message.edit_text(
+            f"🔒 Полное описание знака <b>{sign}</b>\n\n"
+            "Выберите раздел:",
+            reply_markup=keyboard
         )
 
         await callback.answer()
         return
-
 
     if callback.data == "birth_time_no":
         if not data.get("birth_date"):
