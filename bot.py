@@ -8,6 +8,7 @@ from zodiac_data import (
 )
 from recommendations import CURRENT_RECOMMENDATIONS
 from zoneinfo import ZoneInfo
+from utils import get_sign_meta, render_premium_section
  
 import swisseph as swe
 from aiogram import Bot, Dispatcher
@@ -887,15 +888,12 @@ async def handle_callback(callback: CallbackQuery):
 
     if callback.data.startswith("premium_section_"):
         raw_data = callback.data.replace("premium_section_", "")
-
         sign, section_title = raw_data.split("_", 1)
 
         description = ZODIAC_DESCRIPTIONS.get(sign)
 
         if not description:
-            await callback.message.edit_text(
-                "Не удалось найти описание этого знака."
-            )
+            await callback.message.edit_text("Не удалось найти описание этого знака.")
             await callback.answer()
             return
 
@@ -905,31 +903,20 @@ async def handle_callback(callback: CallbackQuery):
         if not section_text:
             section_text = "Этот раздел находится в разработке."
 
-        sign_info = ZODIAC_INFO.get(sign, {})
-        symbol = sign_info.get("symbol", "")
-        dative = SIGN_DATIVE.get(sign, sign)
-        genitive = SIGN_GENITIVE.get(sign, sign)
-        icon = SECTION_ICONS.get(section_title, "")
-
-        back_keyboard = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [
-                    InlineKeyboardButton(
-                        text=f"⬅️ Назад к {dative} {symbol}",
-                        callback_data=f"sign_premium_{sign}"
-                    )
-                ]
-            ]
+        text, keyboard = render_premium_section(
+            sign,
+            section_title,
+            section_text
         )
 
         await callback.message.edit_text(
-            f"<b>{icon} {section_title} {genitive} {symbol}</b>\n\n"
-            f"{section_text}",
-            reply_markup=back_keyboard
+            text,
+            reply_markup=keyboard
         )
 
         await callback.answer()
         return
+
 
     if callback.data == "birth_time_no":
         if not data.get("birth_date"):
@@ -957,8 +944,10 @@ async def handle_callback(callback: CallbackQuery):
     if callback.data.startswith("premium_recommendation_"):
         sign = callback.data.replace("premium_recommendation_", "")
 
-        sign_info = ZODIAC_INFO.get(sign, {})
-        symbol = sign_info.get("symbol", "")
+        meta = get_sign_meta(sign)
+        symbol = meta["symbol"]
+
+        dative = meta["dative"]
 
         recommendation = CURRENT_RECOMMENDATIONS.get(sign)
 
