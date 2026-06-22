@@ -954,6 +954,37 @@ async def handle_callback(callback: CallbackQuery):
         await callback.answer()
         return
 
+    if callback.data.startswith("premium_recommendation_"):
+        sign = callback.data.replace("premium_recommendation_", "")
+
+        sign_info = ZODIAC_INFO.get(sign, {})
+        symbol = sign_info.get("symbol", "")
+
+        recommendation = CURRENT_RECOMMENDATIONS.get(sign)
+
+        if not recommendation:
+            recommendation = "Рекомендации пока находятся в разработке."
+
+        back_keyboard = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text=f"⬅️ Назад к {sign} {symbol}",
+                        callback_data=f"sign_premium_{sign}"
+                    )
+                ]
+            ]
+        )
+
+        await callback.message.edit_text(
+            f"🔮 Рекомендации — {sign} {symbol}\n\n"
+            f"{recommendation}",
+            reply_markup=back_keyboard
+        )
+
+        await callback.answer()
+        return
+
 
 @dp.message()
 async def handle_message(message: Message):
