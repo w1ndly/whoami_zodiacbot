@@ -889,7 +889,7 @@ async def handle_message(message: Message):
 ## РАСЧЕТ ПО ДАННЫМ
 
         symbol = sign.split()[1]
-        
+
         sign_name = sign.split()[0]
 
         keyboard = InlineKeyboardMarkup(
@@ -911,7 +911,7 @@ async def handle_message(message: Message):
             f"{symbol} Ваш знак Зодиака — <b>{sign}</b>\n\n"
             f"Стихия: <b>{element}</b>\n\n"
             "Теперь никаких сомнений.\n"
-            "Вы точно знаете свой знак Зодиака."
+            "Вы точно знаете свой знак Зодиака.",
             reply_markup=keyboard
         )
         return
