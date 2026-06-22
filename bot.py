@@ -900,44 +900,6 @@ async def handle_message(message: Message):
         )
         return
 
-        sign = result["sign"]
-        element = ELEMENTS[sign]["name"]
-
-        data["birth_place"] = result["location_name"]
-        data["state"] = None
-        user_data[user_id] = data
-
-
-## РАСЧЕТ ПО ДАННЫМ
-
-        symbol = sign.split()[1]
-
-        sign_name = sign.split()[0]
-
-        keyboard = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [
-                    InlineKeyboardButton(
-                        text="✨ Подробнее о моем знаке",
-                        callback_data=f"sign_more_{sign_name}"
-                    )
-                ]
-            ]
-        )
-
-        await message.answer(
-            f"✨ Расчет выполнен по данным:\n\n"
-            f"📅 <b>{data.get('birth_date')}</b>\n"
-            f"🕓 <b>{data.get('birth_time')}</b>\n"
-            f"🌍 <b>{result.get('location_name')}</b>\n\n"
-            f"{symbol} Ваш знак Зодиака — <b>{sign}</b>\n\n"
-            f"Стихия: <b>{element}</b>\n\n"
-            "Теперь никаких сомнений.\n"
-            "Вы точно знаете свой знак Зодиака.",
-            reply_markup=keyboard
-        )
-        return
-
 
     if state == "waiting_for_time":
 
