@@ -863,8 +863,7 @@ async def handle_callback(callback: CallbackQuery):
         await callback.answer()
         return
 
-    
-        if callback.data.startswith("premium_section_"):
+    if callback.data.startswith("premium_section_"):
         raw_data = callback.data.replace("premium_section_", "")
 
         sign, section_title = raw_data.split("_", 1)
@@ -903,7 +902,6 @@ async def handle_callback(callback: CallbackQuery):
 
         await callback.answer()
         return
-
 
     if callback.data == "birth_time_no":
         if not data.get("birth_date"):
