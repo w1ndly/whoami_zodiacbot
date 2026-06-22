@@ -902,7 +902,7 @@ async def handle_callback(callback: CallbackQuery):
                 [
                     InlineKeyboardButton(
                         text=f"⬅️ Назад к {dative} {symbol}",
-                        callback_data=f"sign_premium_{sign}"
+                        callback_data=f"sign_premium_{sign}",
                         dative = SIGN_DATIVE.get(sign, sign)
                     )
                 ]
