@@ -984,6 +984,15 @@ async def handle_callback(callback: CallbackQuery):
         await callback.answer()
         return
 
+    await callback.message.answer(
+        "⚠️ Неизвестное действие.\n\n"
+        "Похоже, кнопка устарела или бот был обновлен.\n"
+        "Пожалуйста, начните заново командой /clear."
+    )
+
+    await callback.answer()
+    return
+
 
 @dp.message()
 async def handle_message(message: Message):
