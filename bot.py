@@ -76,12 +76,8 @@ def check_free_limit(user_id: int) -> bool:
     if get_user_plan(user_id) == "premium":
         return True
 
-    if not check_free_limit(user_id, usage):
-        await message.answer(
-            "🔒 Лимит бесплатных проверок исчерпан (10/мес).\n\n"
-            "Купите подписку за 59₽ для безлимита."
-        )
-        return
+    usage = user_usage.get(user_id, 0)
+    return usage < FREE_CHECKS_PER_MONTH
 
 def add_usage(user_id: int):
     user_usage[user_id] = user_usage.get(user_id, 0) + 1
@@ -807,6 +803,13 @@ async def handle_callback(callback: CallbackQuery):
     user_id = callback.from_user.id
     data = user_data.get(user_id, {})
 
+    if not check_free_limit(user_id):
+        await message.answer(
+            "🔒 Лимит бесплатных проверок исчерпан (10/мес).\n\n"
+            "Купите подписку за 59₽ для безлимита."
+        )
+        return
+
     if callback.data.startswith("birth_place_"):
         index = int(callback.data.replace("birth_place_", ""))
 
@@ -1110,6 +1113,13 @@ async def handle_message(message: Message):
     text = message.text.strip()
     data = user_data.get(user_id, {})
     state = data.get("state")
+
+    if not check_free_limit(user_id):
+        await message.answer(
+            "🔒 Лимит бесплатных проверок исчерпан (10/мес).\n\n"
+            "Купите подписку за 59₽ для безлимита."
+        )
+        return
 
     if state == "confirming_place":
         await message.answer(
