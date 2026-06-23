@@ -937,12 +937,12 @@ async def handle_callback(callback: CallbackQuery):
     if callback.data.startswith("sign_premium_"):
 
         if get_user_plan(user_id) != "premium":
-        await callback.message.answer(
-            "🔒 Этот раздел доступен только по подписке.\n\n"
-            "Пока вы можете пользоваться базовой версией.",
-        )
-        await callback.answer()
-        return
+            await callback.message.answer(
+                "🔒 Этот раздел доступен только по подписке.\n\n"
+                "Пока вы можете пользоваться базовой версией.",
+            )
+            await callback.answer()
+            return
 
         sign = callback.data.replace("sign_premium_", "")
 
