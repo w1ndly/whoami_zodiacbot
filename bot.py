@@ -901,10 +901,17 @@ async def handle_callback(callback: CallbackQuery):
         await callback.answer()
         return
 
-    if get_user_plan(user_id) != "premium":
     if callback.data.startswith("sign_more_"):
-        sign = callback.data.replace("sign_more_", "")
 
+        if get_user_plan(user_id) != "premium":
+            await callback.message.answer(
+                "🔒 Это доступно только по подписке.\n\n"
+                "Оформите премиум, чтобы открыть полный разбор знака."
+            )
+            await callback.answer()
+            return
+
+        sign = callback.data.replace("sign_more_", "")
         free = render_free_sign_description(sign)
 
         if free:
@@ -934,7 +941,7 @@ async def handle_callback(callback: CallbackQuery):
 ## КНОПКА ПЛАТКИ
 
     if callback.data.startswith("sign_premium_"):
-        
+
         if get_user_plan(user_id) != "premium":
         await callback.message.answer(
             "🔒 Этот раздел доступен только по подписке.\n\n"
