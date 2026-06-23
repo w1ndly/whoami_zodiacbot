@@ -3,10 +3,15 @@ USER_SIGN_ACCESS = {}    # 290₽ — доступ к знаку
 
 FREE_LIMIT = 10
 
+USER_PLAN = {}
+
+def get_user_plan(user_id: int) -> str:
+    return USER_PLAN.get(user_id, "free")
 
 # -------------------
 # SUBSCRIPTION (59₽)
 # -------------------
+
 
 def get_subscription(user_id: int) -> bool:
     return USER_SUBSCRIPTION.get(user_id, False)
