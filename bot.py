@@ -28,6 +28,7 @@ TOKEN = os.getenv("BOT_TOKEN")
 SUPPORT_CONTACT = "@bogdangloba_chat"
 
 FREE_CHECKS_PER_MONTH = 10
+USER_PLAN = {}
 
 UNLIMITED_SUBSCRIPTION_PRICE = 59
 
@@ -40,6 +41,8 @@ bot = Bot(
 dp = Dispatcher()
 
 user_data = {}
+
+user_usage = {}
 
 SECTION_ICONS = {
     "Основная сила": "✨",
@@ -59,6 +62,19 @@ SECTION_IDS = {
     "shadow": "Темная сторона",
     "sexuality": "Сексуальность",
 }
+
+def check_free_limit(user_id: int) -> bool:
+    if get_user_plan(user_id) == "premium":
+        return True
+
+    usage = user_usage.get(user_id, 0)
+    return usage < FREE_CHECKS_PER_MONTH
+
+def add_usage(user_id: int):
+    user_usage[user_id] = user_usage.get(user_id, 0) + 1
+
+def set_user_premium(user_id: int):
+    USER_PLAN[user_id] = "premium"
 
 def sign_more_keyboard(sign: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
@@ -785,6 +801,7 @@ async def handle_callback(callback: CallbackQuery):
 
         sign = result["sign"]
         meta = normalize_sign(sign)
+        meta = get_sign_meta(sign)
         element = meta["element"]
         symbol = sign.split()[1]
         sign_name = sign.split()[0]
@@ -884,6 +901,7 @@ async def handle_callback(callback: CallbackQuery):
         await callback.answer()
         return
 
+    if get_user_plan(user_id) != "premium":
     if callback.data.startswith("sign_more_"):
         sign = callback.data.replace("sign_more_", "")
 
@@ -916,6 +934,15 @@ async def handle_callback(callback: CallbackQuery):
 ## КНОПКА ПЛАТКИ
 
     if callback.data.startswith("sign_premium_"):
+        
+        if get_user_plan(user_id) != "premium":
+        await callback.message.answer(
+            "🔒 Этот раздел доступен только по подписке.\n\n"
+            "Пока вы можете пользоваться базовой версией.",
+        )
+        await callback.answer()
+        return
+
         sign = callback.data.replace("sign_premium_", "")
 
         keyboard = premium_menu_keyboard(sign)
@@ -1192,12 +1219,22 @@ async def handle_message(message: Message):
     sign = get_zodiac_sign(day, month)
     meta = normalize_sign(sign)
     symbol = sign.split()[1]
+    meta = get_sign_meta(sign)
     element = meta["element"]
     sign_name = sign.split()[0]
     
     keyboard = sign_more_keyboard(sign_name)
 
 ## ПРОСТОЙ ОТВЕТ
+
+    if not check_free_limit(user_id):
+        await message.answer(
+            "🔒 Вы достигли лимита бесплатных проверок (10/месяц).\n\n"
+            "Чтобы продолжить — оформите подписку.",
+        )
+        return
+
+    add_usage(user_id)
 
     await message.answer(
         f"{symbol} Ваш знак Зодиака — <b>{sign}</b>\n\n"
