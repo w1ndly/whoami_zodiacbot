@@ -115,6 +115,64 @@ def premium_menu_keyboard(sign: str) -> InlineKeyboardMarkup:
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
+def get_premium_section_text(sign: str, section_title: str) -> str:
+    description = ZODIAC_DESCRIPTIONS.get(sign)
+
+    if not description:
+        return "Не удалось найти описание этого знака."
+
+    premium = description.get("premium", {})
+    section_text = premium.get(section_title)
+
+    if not section_text:
+        return "Этот раздел находится в разработке."
+
+    return section_text
+
+def get_current_recommendation_text(sign: str) -> str:
+    recommendation = CURRENT_RECOMMENDATIONS.get(sign)
+
+    if not recommendation:
+        return "Рекомендации пока находятся в разработке."
+
+    return recommendation
+
+def render_free_sign_description(sign: str) -> str | None:
+    description = ZODIAC_DESCRIPTIONS.get(sign)
+
+    if not description:
+        return None
+
+    text = (
+        f"{description['title']}\n\n"
+        f"Стихия: <b>{description['element']}</b>"
+    )
+
+    meta = description.get("meta", {})
+
+    for title, value in meta.items():
+        text += (
+            f"\n\n<b>{title}</b>\n"
+            f"{value}"
+        )
+
+    text += f"\n\n{description.get('short', '')}"
+
+    return text
+
+def sign_premium_keyboard(sign: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="🔒 Полное описание знака",
+                    callback_data=f"sign_premium_{sign}"
+                )
+            ]
+        ]
+    )
+
+
 geolocator = Nominatim(
     user_agent="whoami_zodiacbot",
     timeout=10
@@ -381,6 +439,21 @@ def get_sun_sign_at_utc(utc_datetime):
     sign_index = int(sun_position // 30)
 
     return ZODIAC_SIGNS[sign_index]
+
+
+def normalize_sign(sign: str):
+    """
+    Делает единый формат знака через meta-слой
+    """
+    meta = get_sign_meta(sign)
+
+    return {
+        "sign": sign,
+        "symbol": meta["symbol"],
+        "element": meta["element"],
+        "dative": meta["dative"],
+        "genitive": meta["genitive"],
+    }
 
 
 def find_sun_transition_time(birth_date: str, birth_place: str = None, latitude=None, longitude=None, location_name=None):
@@ -711,7 +784,8 @@ async def handle_callback(callback: CallbackQuery):
             return
 
         sign = result["sign"]
-        element = ELEMENTS[sign]["name"]
+        meta = normalize_sign(sign)
+        element = meta["element"]
         symbol = sign.split()[1]
         sign_name = sign.split()[0]
 
@@ -813,25 +887,10 @@ async def handle_callback(callback: CallbackQuery):
     if callback.data.startswith("sign_more_"):
         sign = callback.data.replace("sign_more_", "")
 
-        description = ZODIAC_DESCRIPTIONS.get(sign)
+        free = render_free_sign_description(sign)
 
-        if description:
-            free = (
-                f"{description['title']}\n\n"
-                f"Стихия: <b>{description['element']}</b>"
-            )
-
-            meta = description.get("meta", {})
-
-            for title, value in meta.items():
-                free += (
-                    f"\n\n<b>{title}</b>\n"
-                    f"{value}"
-                )
-
-            free += f"\n\n{description.get('short', '')}"
-
-            keyboard = sign_more_keyboard(sign_name)
+        if free:
+            premium_keyboard = sign_premium_keyboard(sign)
 
             await callback.message.answer(
                 free,
@@ -890,18 +949,7 @@ async def handle_callback(callback: CallbackQuery):
 
         description = ZODIAC_DESCRIPTIONS.get(sign)
 
-        if not description:
-            await callback.message.edit_text(
-                "Не удалось найти описание этого знака."
-            )
-            await callback.answer()
-            return
-
-        premium = description.get("premium", {})
-        section_text = premium.get(section_title)
-
-        if not section_text:
-            section_text = "Этот раздел находится в разработке."
+        section_text = get_premium_section_text(sign, section_title)
 
         back_keyboard = back_to_premium_keyboard(sign)
 
@@ -920,11 +968,7 @@ async def handle_callback(callback: CallbackQuery):
         sign = callback.data.replace("premium_recommendation_", "")
 
         meta = get_sign_meta(sign)
-
-        recommendation = CURRENT_RECOMMENDATIONS.get(sign)
-
-        if not recommendation:
-            recommendation = "Рекомендации пока находятся в разработке."
+        recommendation = get_current_recommendation_text(sign)
 
         back_keyboard = back_to_premium_keyboard(sign)
 
@@ -1146,11 +1190,9 @@ async def handle_message(message: Message):
 
 
     sign = get_zodiac_sign(day, month)
-    element = ELEMENTS[sign]["name"]
-
-
+    meta = normalize_sign(sign)
     symbol = sign.split()[1]
-    
+    element = meta["element"]
     sign_name = sign.split()[0]
     
     keyboard = sign_more_keyboard(sign_name)
