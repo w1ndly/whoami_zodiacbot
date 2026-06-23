@@ -6,13 +6,6 @@ from zodiac_data import (
     SIGN_GENITIVE,
     SIGN_DATIVE
 )
-from product_layer import (
-    get_user_plan,
-    add_usage,
-    check_free_limit,
-    can_access_premium,
-    get_user_status
-)
 from product_layer import get_user_status
 from recommendations import CURRENT_RECOMMENDATIONS
 from zoneinfo import ZoneInfo
