@@ -60,6 +60,61 @@ SECTION_IDS = {
     "sexuality": "Сексуальность",
 }
 
+def sign_more_keyboard(sign: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="✨ Подробнее о моем знаке",
+                    callback_data=f"sign_more_{sign}"
+                )
+            ]
+        ]
+    )
+
+def back_to_premium_keyboard(sign: str) -> InlineKeyboardMarkup:
+    meta = get_sign_meta(sign)
+
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text=f"⬅️ Назад к {meta['dative']} {meta['symbol']}",
+                    callback_data=f"sign_premium_{sign}"
+                )
+            ]
+        ]
+    )
+
+def premium_menu_keyboard(sign: str) -> InlineKeyboardMarkup:
+    sections = [
+        ("✨ Основная сила", "main_power"),
+        ("🌍 Стиль жизни", "lifestyle"),
+        ("❤️ В отношениях", "relationships"),
+        ("💼 В работе", "work"),
+        ("🌑 Темная сторона", "shadow"),
+        ("🔥 Сексуальность", "sexuality"),
+    ]
+
+    buttons = []
+
+    for button_text, section_id in sections:
+        buttons.append([
+            InlineKeyboardButton(
+                text=button_text,
+                callback_data=f"premium_section_{sign}_{section_id}"
+            )
+        ])
+
+    buttons.append([
+        InlineKeyboardButton(
+            text="🔮 Рекомендации на период",
+            callback_data=f"premium_recommendation_{sign}"
+        )
+    ])
+
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
 geolocator = Nominatim(
     user_agent="whoami_zodiacbot",
     timeout=10
@@ -660,16 +715,7 @@ async def handle_callback(callback: CallbackQuery):
         symbol = sign.split()[1]
         sign_name = sign.split()[0]
 
-        keyboard = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [
-                    InlineKeyboardButton(
-                        text="✨ Подробнее о моем знаке",
-                        callback_data=f"sign_more_{sign_name}"
-                    )
-                ]
-            ]
-        )
+        keyboard = sign_more_keyboard(sign_name)
 
         user_data.pop(user_id, None)
 
@@ -717,16 +763,7 @@ async def handle_callback(callback: CallbackQuery):
             symbol = sign.split()[1]
             sign_name = sign.split()[0]
 
-            keyboard = InlineKeyboardMarkup(
-                inline_keyboard=[
-                    [
-                        InlineKeyboardButton(
-                            text="✨ Подробнее о моем знаке",
-                            callback_data=f"sign_more_{sign_name}"
-                        )
-                    ]
-                ]
-            )
+        keyboard = sign_more_keyboard(sign_name)
 
             await callback.message.answer(
                 f"✨ В выбранном месте в эту дату Солнце не переходило из одного знака в другой.\n\n"
@@ -794,16 +831,7 @@ async def handle_callback(callback: CallbackQuery):
 
             free += f"\n\n{description.get('short', '')}"
 
-            premium_keyboard = InlineKeyboardMarkup(
-                inline_keyboard=[
-                    [
-                        InlineKeyboardButton(
-                            text="🔒 Полное описание знака",
-                            callback_data=f"sign_premium_{sign}"
-                        )
-                    ]
-                ]
-            )
+            keyboard = sign_more_keyboard(sign_name)
 
             await callback.message.answer(
                 free,
@@ -831,33 +859,7 @@ async def handle_callback(callback: CallbackQuery):
     if callback.data.startswith("sign_premium_"):
         sign = callback.data.replace("sign_premium_", "")
 
-        sections = [
-            ("✨ Основная сила", "main_power"),
-            ("🌍 Стиль жизни", "lifestyle"),
-            ("❤️ В отношениях", "relationships"),
-            ("💼 В работе", "work"),
-            ("🌑 Темная сторона", "shadow"),
-            ("🔥 Сексуальность", "sexuality"),
-        ]
-
-        buttons = []
-
-        for button_text, section_id in sections:
-            buttons.append([
-                InlineKeyboardButton(
-                    text=button_text,
-                    callback_data=f"premium_section_{sign}_{section_id}"
-                )
-            ])
-
-        buttons.append([
-            InlineKeyboardButton(
-                text="🔮 Рекомендации на период",
-                callback_data=f"premium_recommendation_{sign}"
-            )
-        ])
-
-        keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+        keyboard = premium_menu_keyboard(sign)
 
         await callback.message.edit_text(
             f"🔒 Полное описание знака <b>{sign}</b>\n\n"
@@ -901,16 +903,7 @@ async def handle_callback(callback: CallbackQuery):
         if not section_text:
             section_text = "Этот раздел находится в разработке."
 
-        back_keyboard = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [
-                    InlineKeyboardButton(
-                        text=f"⬅️ Назад к {dative} {symbol}",
-                        callback_data=f"sign_premium_{sign}"
-                    )
-                ]
-            ]
-        )
+        back_keyboard = back_to_premium_keyboard(sign)
 
         icon = SECTION_ICONS.get(section_title, "")
 
@@ -933,16 +926,7 @@ async def handle_callback(callback: CallbackQuery):
         if not recommendation:
             recommendation = "Рекомендации пока находятся в разработке."
 
-        back_keyboard = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [
-                    InlineKeyboardButton(
-                        text=f"⬅️ Назад к {meta['dative']} {meta['symbol']}",
-                        callback_data=f"sign_premium_{sign}"
-                    )
-                ]
-            ]
-        )
+        back_keyboard = back_to_premium_keyboard(sign)
 
         await callback.message.edit_text(
             f"🔮 Рекомендации — {meta['dative']} {meta['symbol']}\n\n"
@@ -1169,16 +1153,7 @@ async def handle_message(message: Message):
     
     sign_name = sign.split()[0]
     
-    keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="✨ Подробнее о моем знаке",
-                    callback_data=f"sign_more_{sign_name}"
-                )
-            ]
-        ]
-    )
+    keyboard = sign_more_keyboard(sign_name)
 
 ## ПРОСТОЙ ОТВЕТ
 
