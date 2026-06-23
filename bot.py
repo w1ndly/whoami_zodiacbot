@@ -6,6 +6,14 @@ from zodiac_data import (
     SIGN_GENITIVE,
     SIGN_DATIVE
 )
+from product_layer import (
+    get_user_plan,
+    set_user_premium,
+    add_usage,
+    check_free_limit,
+    can_access_premium,
+    get_user_status
+)
 from recommendations import CURRENT_RECOMMENDATIONS
 from zoneinfo import ZoneInfo
 from utils import get_sign_meta
@@ -27,7 +35,7 @@ TOKEN = os.getenv("BOT_TOKEN")
 
 SUPPORT_CONTACT = "@bogdangloba_chat"
 
-FREE_CHECKS_PER_MONTH = 10
+
 USER_PLAN = {}
 
 UNLIMITED_SUBSCRIPTION_PRICE = 59
@@ -941,6 +949,13 @@ async def handle_callback(callback: CallbackQuery):
 ## КНОПКА ПЛАТКИ
 
     if callback.data.startswith("sign_premium_"):
+
+        if not can_access_premium(user_id):
+            await callback.message.answer(
+                "🔒 Доступно только по подписке."
+            )
+            await callback.answer()
+            return
 
         if get_user_plan(user_id) != "premium":
             
