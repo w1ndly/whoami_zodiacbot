@@ -8,7 +8,6 @@ from zodiac_data import (
 )
 from product_layer import (
     get_user_plan,
-    set_user_premium,
     add_usage,
     check_free_limit,
     can_access_premium,
@@ -38,6 +37,12 @@ SUPPORT_CONTACT = "@bogdangloba_chat"
 
 
 USER_PLAN = {}
+
+def get_user_plan(user_id: int) -> str:
+    return USER_PLAN.get(user_id, "free")
+
+def set_user_premium(user_id: int):
+    USER_PLAN[user_id] = "premium"
 
 UNLIMITED_SUBSCRIPTION_PRICE = 59
 
