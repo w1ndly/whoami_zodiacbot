@@ -14,6 +14,7 @@ from product_layer import (
     can_access_premium,
     get_user_status
 )
+from product_layer import get_user_status
 from recommendations import CURRENT_RECOMMENDATIONS
 from zoneinfo import ZoneInfo
 from utils import get_sign_meta
@@ -75,8 +76,12 @@ def check_free_limit(user_id: int) -> bool:
     if get_user_plan(user_id) == "premium":
         return True
 
-    usage = user_usage.get(user_id, 0)
-    return usage < FREE_CHECKS_PER_MONTH
+    if not check_free_limit(user_id, usage):
+        await message.answer(
+            "🔒 Лимит бесплатных проверок исчерпан (10/мес).\n\n"
+            "Купите подписку за 59₽ для безлимита."
+        )
+        return
 
 def add_usage(user_id: int):
     user_usage[user_id] = user_usage.get(user_id, 0) + 1
@@ -772,6 +777,31 @@ async def cmd_help(message: Message):
     )
 
 
+@dp.message(Command("status"))
+async def cmd_status(message: Message):
+    user_id = message.from_user.id
+
+    status = get_user_status(user_id)
+
+    plan = status["plan"]
+    usage = status["usage"]
+    limit = status["limit"]
+    remaining = status["remaining"]
+
+    if plan == "premium":
+        plan_text = "💎 PREMIUM"
+    else:
+        plan_text = "🆓 FREE"
+
+    await message.answer(
+        f"📊 <b>Ваш профиль</b>\n\n"
+        f"План: <b>{plan_text}</b>\n"
+        f"Использовано: <b>{usage}/{limit}</b>\n"
+        f"Осталось: <b>{remaining}</b>\n\n"
+        f"✨ Управление доступом будет доступно в следующих обновлениях"
+    )
+
+
 @dp.callback_query()
 async def handle_callback(callback: CallbackQuery):
     user_id = callback.from_user.id
@@ -980,6 +1010,15 @@ async def handle_callback(callback: CallbackQuery):
         return
 
     if callback.data.startswith("premium_section_"):
+
+        if not has_sign_access(user_id, sign):
+            await callback.message.answer(
+                "🔒 Этот знак доступен только после покупки.\n\n"
+                "Цена: 290₽ — полный доступ ко всем разделам и рекомендациям."
+            )
+            await callback.answer()
+            return
+
         raw_data = callback.data.replace("premium_section_", "")
 
         sign, section_id = raw_data.split("_", 1)

@@ -1,48 +1,55 @@
-# product_layer.py
-
-from datetime import datetime
+USER_SUBSCRIPTION = {}   # 59₽ — безлимит проверок
+USER_SIGN_ACCESS = {}    # 290₽ — доступ к знаку
 
 FREE_LIMIT = 10
 
-USER_USAGE = {}
-USER_PLAN = {}
+
+# -------------------
+# SUBSCRIPTION (59₽)
+# -------------------
+
+def get_subscription(user_id: int) -> bool:
+    return USER_SUBSCRIPTION.get(user_id, False)
 
 
-def get_user_plan(user_id: int) -> str:
-    return USER_PLAN.get(user_id, "free")
+def set_subscription(user_id: int):
+    USER_SUBSCRIPTION[user_id] = True
 
 
-def set_user_premium(user_id: int):
-    USER_PLAN[user_id] = "premium"
-
-
-def get_usage(user_id: int) -> int:
-    return USER_USAGE.get(user_id, 0)
-
-
-def add_usage(user_id: int):
-    USER_USAGE[user_id] = get_usage(user_id) + 1
-
-
-def reset_usage(user_id: int):
-    USER_USAGE[user_id] = 0
-
-
-def check_free_limit(user_id: int) -> bool:
-    if get_user_plan(user_id) == "premium":
+def check_free_limit(user_id: int, usage: int) -> bool:
+    if get_subscription(user_id):
         return True
 
-    return get_usage(user_id) < FREE_LIMIT
+    return usage < FREE_LIMIT
 
 
-def can_access_premium(user_id: int) -> bool:
-    return get_user_plan(user_id) == "premium"
+# -------------------
+# SIGN ACCESS (290₽)
+# -------------------
+
+def has_sign_access(user_id: int, sign: str) -> bool:
+    return USER_SIGN_ACCESS.get(user_id, set()).__contains__(sign)
 
 
-def get_user_status(user_id: int) -> dict:
+def grant_sign_access(user_id: int, sign: str):
+    if user_id not in USER_SIGN_ACCESS:
+        USER_SIGN_ACCESS[user_id] = set()
+
+    USER_SIGN_ACCESS[user_id].add(sign)
+
+
+def can_view_premium(user_id: int, sign: str) -> bool:
+    return has_sign_access(user_id, sign)
+
+
+# -------------------
+# STATUS
+# -------------------
+
+def get_user_status(user_id: int, usage: int):
     return {
-        "plan": get_user_plan(user_id),
-        "usage": get_usage(user_id),
+        "subscription": get_subscription(user_id),
         "limit": FREE_LIMIT,
-        "remaining": max(0, FREE_LIMIT - get_usage(user_id))
+        "usage": usage,
+        "signs": len(USER_SIGN_ACCESS.get(user_id, []))
     }
