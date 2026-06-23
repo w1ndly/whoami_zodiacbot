@@ -839,16 +839,16 @@ async def handle_callback(callback: CallbackQuery):
 
         keyboard = sign_more_keyboard(sign_name)
 
-            await callback.message.answer(
-                f"✨ В выбранном месте в эту дату Солнце не переходило из одного знака в другой.\n\n"
-                f"В течение этого дня Солнце находилось в знаке <b>{sign}</b>.\n\n"
-                "Теперь никаких сомнений.\n"
-                "Вы точно знаете свой знак Зодиака.",
-                reply_markup=keyboard
-            )
+        await callback.message.answer(
+            f"✨ В выбранном месте в эту дату Солнце не переходило из одного знака в другой.\n\n"
+            f"В течение этого дня Солнце находилось в знаке <b>{sign}</b>.\n\n"
+            "Теперь никаких сомнений.\n"
+            "Вы точно знаете свой знак Зодиака.",
+            reply_markup=keyboard
+        )
 
-            await callback.answer()
-            return
+        await callback.answer()
+        return
 
         from_sign = result["from_sign"]
         to_sign = result["to_sign"]
