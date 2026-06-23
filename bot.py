@@ -51,6 +51,15 @@ SECTION_ICONS = {
     "Рекомендации на текущий период": "🔮",
 }
 
+SECTION_IDS = {
+    "main_power": "Основная сила",
+    "lifestyle": "Стиль жизни",
+    "relationships": "В отношениях",
+    "work": "В работе",
+    "shadow": "Темная сторона",
+    "sexuality": "Сексуальность",
+}
+
 geolocator = Nominatim(
     user_agent="whoami_zodiacbot",
     timeout=10
@@ -822,52 +831,33 @@ async def handle_callback(callback: CallbackQuery):
     if callback.data.startswith("sign_premium_"):
         sign = callback.data.replace("sign_premium_", "")
 
-        keyboard = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [
-                    InlineKeyboardButton(
-                        text="✨ Основная сила",
-                        callback_data=f"premium_section_{sign}_Основная сила"
-                    )
-                ],
-                [
-                    InlineKeyboardButton(
-                        text="🌍 Стиль жизни",
-                        callback_data=f"premium_section_{sign}_Стиль жизни"
-                    )
-                ],
-                [
-                    InlineKeyboardButton(
-                        text="❤️ В отношениях",
-                        callback_data=f"premium_section_{sign}_В отношениях"
-                    )
-                ],
-                [
-                    InlineKeyboardButton(
-                        text="💼 В работе",
-                        callback_data=f"premium_section_{sign}_В работе"
-                    )
-                ],
-                [
-                    InlineKeyboardButton(
-                        text="🌑 Темная сторона",
-                        callback_data=f"premium_section_{sign}_Темная сторона"
-                    )
-                ],
-                [
-                    InlineKeyboardButton(
-                        text="🔥 Сексуальность",
-                        callback_data=f"premium_section_{sign}_Сексуальность"
-                    )
-                ],
-                [
-                    InlineKeyboardButton(
-                        text="🔮 Рекомендации на период",
-                        callback_data=f"premium_recommendation_{sign}"
-                    )
-                ],
-            ]
-        )
+        sections = [
+            ("✨ Основная сила", "main_power"),
+            ("🌍 Стиль жизни", "lifestyle"),
+            ("❤️ В отношениях", "relationships"),
+            ("💼 В работе", "work"),
+            ("🌑 Темная сторона", "shadow"),
+            ("🔥 Сексуальность", "sexuality"),
+        ]
+
+        buttons = []
+
+        for button_text, section_id in sections:
+            buttons.append([
+                InlineKeyboardButton(
+                    text=button_text,
+                    callback_data=f"premium_section_{sign}_{section_id}"
+                )
+            ])
+
+        buttons.append([
+            InlineKeyboardButton(
+                text="🔮 Рекомендации на период",
+                callback_data=f"premium_recommendation_{sign}"
+            )
+        ])
+
+        keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
 
         await callback.message.edit_text(
             f"🔒 Полное описание знака <b>{sign}</b>\n\n"
@@ -881,7 +871,15 @@ async def handle_callback(callback: CallbackQuery):
     if callback.data.startswith("premium_section_"):
         raw_data = callback.data.replace("premium_section_", "")
 
-        sign, section_title = raw_data.split("_", 1)
+        sign, section_id = raw_data.split("_", 1)
+        section_title = SECTION_IDS.get(section_id)
+
+        if not section_title:
+            await callback.message.edit_text(
+                "Не удалось найти этот раздел."
+            )
+            await callback.answer()
+            return
 
         meta = get_sign_meta(sign)
         symbol = meta["symbol"]
@@ -903,8 +901,6 @@ async def handle_callback(callback: CallbackQuery):
         if not section_text:
             section_text = "Этот раздел находится в разработке."
 
-        dative = SIGN_DATIVE.get(sign, sign)
-
         back_keyboard = InlineKeyboardMarkup(
             inline_keyboard=[
                 [
@@ -916,10 +912,7 @@ async def handle_callback(callback: CallbackQuery):
             ]
         )
 
-        sign_info = ZODIAC_INFO.get(sign, {})
-        symbol = sign_info.get("symbol", "")
         icon = SECTION_ICONS.get(section_title, "")
-        genitive = SIGN_GENITIVE.get(sign, sign)
 
         await callback.message.edit_text(
             f"<b>{icon} {section_title} {genitive} {symbol}</b>\n\n"
