@@ -2,7 +2,6 @@ import asyncio
 import os
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
-
 import swisseph as swe
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
@@ -13,6 +12,11 @@ from dotenv import load_dotenv
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 from timezonefinder import TimezoneFinder
+from user_profile import (
+    can_make_check,
+    add_check,
+    render_profile_text,
+)
 
 load_dotenv()
 
@@ -465,6 +469,7 @@ async def start(message: Message):
         "📌 Полезные команды:\n"
         "/profile — мои проверки\n"
         "/help — помощь\n"
+        "/profile — ваш профиль\n"
         "/feedback — обратная связь"
     )
 
@@ -495,6 +500,13 @@ async def clear(message: Message):
     )
 
 
+@dp.message(Command("profile"))
+async def cmd_profile(message: Message):
+    await message.answer(
+        render_profile_text(message.from_user.id)
+    )
+
+
 @dp.message(Command("help"))
 async def cmd_help(message: Message):
     await message.answer(
@@ -502,7 +514,7 @@ async def cmd_help(message: Message):
         "Я помогу точно определить ваш знак Зодиака, в том числе если вы родились в пограничную дату.\n\n"
         "Команды:\n"
         "/start — начать заново\n"
-        "/profile — посмотреть остаток проверок\n"
+        "/profile — ваш профиль и остаток проверок\n"
         "/clear — очистить введенные данные\n"
         "/feedback — обратная связь\n"
         "/help — список команд\n\n"
