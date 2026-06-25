@@ -902,9 +902,6 @@ async def handle_callback(callback: CallbackQuery):
         return
 
     if callback.data.startswith("sign_more_"):
-
-
-
         sign = callback.data.replace("sign_more_", "")
         free = render_free_sign_description(sign)
 
