@@ -426,9 +426,9 @@ async def start(message: Message):
         "Например:\n"
         "<b>23.08.1994</b>\n\n"
         "📌 Полезные команды:\n"
-        "/profile — мои проверки\n"
+        "/profile — ваш профиль и остаток проверок\n"
         "/help — помощь\n"
-        "/profile — ваш профиль\n"
+        "/clear — очистить введенные данные\n"
         "/feedback — обратная связь"
     )
 
@@ -761,8 +761,6 @@ async def handle_message(message: Message):
             reply_markup=birth_time_question_keyboard()
         )
         return
-
-    user_id = message.from_user.id
 
     if not can_make_check(user_id):
         await message.answer(limit_text())
