@@ -1,6 +1,5 @@
 import asyncio
 import os
-from profile_service import send_limit_if_needed
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 import swisseph as swe
@@ -36,7 +35,6 @@ dp = Dispatcher()
 # ВАЖНО: после перезапуска Railway эти данные обнуляются.
 # Позже это лучше перенести в SQLite/PostgreSQL.
 user_data = {}
-user_usage = {}
 
 geolocator = Nominatim(
     user_agent="whoami_zodiacbot",
@@ -101,41 +99,6 @@ FLAGS = {
     "Ukraina": "🇺🇦",
     "Україна": "🇺🇦",
 }
-
-
-def get_usage(user_id: int) -> int:
-    return user_usage.get(user_id, 0)
-
-
-def get_remaining_checks(user_id: int) -> int:
-    return max(FREE_CHECKS_PER_MONTH - get_usage(user_id), 0)
-
-
-def can_use_check(user_id: int) -> bool:
-    return get_usage(user_id) < FREE_CHECKS_PER_MONTH
-
-
-def add_usage(user_id: int) -> None:
-    user_usage[user_id] = get_usage(user_id) + 1
-
-
-def limit_text() -> str:
-    return (
-        "🔒 Лимит бесплатных проверок исчерпан.\n\n"
-        f"В бесплатной версии доступно {FREE_CHECKS_PER_MONTH} проверок.\n"
-        "Позже здесь появится оплата безлимита."
-    )
-
-
-def profile_text(user_id: int) -> str:
-    used = get_usage(user_id)
-    remaining = get_remaining_checks(user_id)
-
-    return (
-        "👤 Ваш профиль\n\n"
-        f"Использовано проверок: <b>{used}/{FREE_CHECKS_PER_MONTH}</b>\n"
-        f"Осталось проверок: <b>{remaining}</b>"
-    )
 
 
 def get_sign_name(sign: str) -> str:
@@ -465,12 +428,12 @@ async def start(message: Message):
         "/feedback — обратная связь"
     )
 
-    add_check(user_id)
+async def send_limit_if_needed(message: Message, user_id: int) -> bool:
+    if can_make_check(user_id):
+        return False
 
-
-@dp.message(Command("profile"))
-async def cmd_profile(message: Message):
-    await message.answer(profile_text(message.from_user.id))
+    await message.answer(limit_text())
+    return True
 
 
 @dp.message(Command("feedback"))
@@ -562,7 +525,7 @@ async def handle_callback(callback: CallbackQuery):
         return
 
     if callback.data.startswith("birth_place_"):
-        if not can_use_check(user_id):
+        if not can_make_check(user_id):
             await callback.message.answer(limit_text())
             return
 
@@ -591,7 +554,7 @@ async def handle_callback(callback: CallbackQuery):
             )
             return
 
-        add_usage(user_id)
+        add_check(user_id)
         user_data.pop(user_id, None)
 
         extra = (
@@ -608,7 +571,7 @@ async def handle_callback(callback: CallbackQuery):
         return
 
     if callback.data.startswith("transition_place_"):
-        if not can_use_check(user_id):
+        if not can_make_check(user_id):
             await callback.message.answer(limit_text())
             return
 
@@ -637,7 +600,7 @@ async def handle_callback(callback: CallbackQuery):
             )
             return
 
-        add_usage(user_id)
+        add_check(user_id)
         user_data.pop(user_id, None)
 
         if result.get("is_transition_day") is False:
@@ -772,9 +735,6 @@ async def handle_message(message: Message):
         )
         return
 
-    if await send_limit_if_needed(message, user_id):
-        return
-
     day = birth_date.day
     month = birth_date.month
 
@@ -809,7 +769,7 @@ async def handle_message(message: Message):
         return
 
     sign = get_zodiac_sign(day, month)
-    add_usage(user_id)
+    add_check(user_id)
 
     await message.answer(
         render_result_message(sign)
