@@ -1,10 +1,8 @@
-FREE_CHECKS_PER_MONTH = 10
-
-_user_checks = {}
-
+from limits import FREE_CHECKS_PER_MONTH
+from storage import user_checks
 
 def get_user_profile(user_id: int) -> dict:
-    used = _user_checks.get(user_id, 0)
+    used = user_checks.get(user_id, 0)
     remaining = max(FREE_CHECKS_PER_MONTH - used, 0)
 
     return {
@@ -22,7 +20,7 @@ def can_make_check(user_id: int) -> bool:
 
 
 def add_check(user_id: int) -> None:
-    _user_checks[user_id] = _user_checks.get(user_id, 0) + 1
+    user_checks[user_id] = user_checks.get(user_id, 0) + 1
 
 
 def get_remaining_checks(user_id: int) -> int:
@@ -39,10 +37,4 @@ def render_profile_text(user_id: int) -> str:
         f"Бесплатных проверок: <b>{profile['remaining_checks']} из {profile['free_limit']}</b>\n\n"
         "Пока лимит хранится в памяти бота.\n"
         "После перезапуска сервера счетчик начнется заново."
-    )
-
-def limit_text() -> str:
-    return (
-        "🔒 Вы использовали все 10 бесплатных проверок.\n\n"
-        "Скоро здесь появится возможность приобрести безлимитный доступ."
     )

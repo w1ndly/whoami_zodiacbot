@@ -17,6 +17,10 @@ from user_profile import (
     add_check,
     render_profile_text,
     get_remaining_checks,
+)
+
+from limits import (
+    FREE_CHECKS_PER_MONTH,
     limit_text,
 )
 
