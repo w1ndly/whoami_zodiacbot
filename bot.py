@@ -202,7 +202,7 @@ def short_place_name(place: str) -> str:
     return place
 
 
-def places_keyboard(places: list[dict], prefix: str) -> InlineKeyboardMarkup:
+def places_keyboard(places: list[dict], prefix: str, request_id: int) -> InlineKeyboardMarkup:
     buttons = []
 
     for index, place in enumerate(places):
@@ -211,7 +211,7 @@ def places_keyboard(places: list[dict], prefix: str) -> InlineKeyboardMarkup:
         buttons.append([
             InlineKeyboardButton(
                 text=text,
-                callback_data=f"{prefix}_{index}"
+                callback_data=f"{prefix}_{request_id}_{index}"
             )
         ])
 
@@ -432,13 +432,6 @@ async def start(message: Message):
         "/feedback — обратная связь"
     )
 
-async def send_limit_if_needed(message: Message, user_id: int) -> bool:
-    if can_make_check(user_id):
-        return False
-
-    await message.answer(limit_text())
-    return True
-
 
 @dp.message(Command("feedback"))
 async def cmd_feedback(message: Message):
@@ -533,7 +526,24 @@ async def handle_callback(callback: CallbackQuery):
             await callback.message.answer(limit_text())
             return
 
-        index = int(callback.data.replace("birth_place_", ""))
+parts = callback.data.replace("birth_place_", "").split("_")
+
+if len(parts) != 2:
+    await callback.message.answer(
+        "Похоже, эта кнопка устарела.\n\n"
+        "Введите место рождения еще раз."
+    )
+    return
+
+        request_id = int(parts[0])
+        index = int(parts[1])
+
+        if request_id != data.get("place_request_id"):
+            await callback.message.answer(
+                "Похоже, вы нажали старый вариант города.\n\n"
+                "Пожалуйста, выберите город из последнего списка."
+            )
+            return
         place_options = data.get("place_options", [])
 
         if index >= len(place_options):
@@ -579,7 +589,24 @@ async def handle_callback(callback: CallbackQuery):
             await callback.message.answer(limit_text())
             return
 
-        index = int(callback.data.replace("transition_place_", ""))
+        parts = callback.data.replace("transition_place_", "").split("_")
+
+        if len(parts) != 2:
+            await callback.message.answer(
+                "Похоже, эта кнопка устарела.\n\n"
+                "Введите место рождения еще раз."
+            )
+            return
+
+        request_id = int(parts[0])
+        index = int(parts[1])
+
+        if request_id != data.get("place_request_id"):
+            await callback.message.answer(
+                "Похоже, вы нажали старый вариант города.\n\n"
+                "Пожалуйста, выберите город из последнего списка."
+            )
+            return
         place_options = data.get("place_options", [])
 
         if index >= len(place_options):
@@ -693,13 +720,16 @@ async def handle_message(message: Message):
             )
             return
 
+        place_request_id = data.get("place_request_id", 0) + 1
+
+        data["place_request_id"] = place_request_id
         data["place_options"] = places
         user_data[user_id] = data
 
         await message.answer(
             "🌍 Я нашел несколько подходящих вариантов.\n\n"
             "Пожалуйста, выберите место рождения:",
-            reply_markup=places_keyboard(places, "birth_place")
+            reply_markup=places_keyboard(places, "birth_place", place_request_id)
         )
         return
 
@@ -716,13 +746,16 @@ async def handle_message(message: Message):
             )
             return
 
+        place_request_id = data.get("place_request_id", 0) + 1
+
+        data["place_request_id"] = place_request_id
         data["place_options"] = places
         user_data[user_id] = data
 
         await message.answer(
             "🌍 Я нашел несколько подходящих вариантов.\n\n"
             "Пожалуйста, выберите место рождения:",
-            reply_markup=places_keyboard(places, "transition_place")
+            reply_markup=places_keyboard(places, "transition_place", place_request_id)
         )
         return
 
