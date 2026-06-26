@@ -625,7 +625,6 @@ async def handle_callback(callback: CallbackQuery):
             "Теперь вы знаете. И все, что осталось — найти точное время своего рождения.\n\n"
             f"Осталось проверок: <b>{get_remaining_checks(user_id)}</b>"
         )
-        add_check(user_id)
         return
 
     await callback.message.answer(
@@ -766,10 +765,7 @@ async def handle_message(message: Message):
     user_id = message.from_user.id
 
     if not can_make_check(user_id):
-        await message.answer(
-            "🔒 Вы использовали все 10 бесплатных проверок.\n\n"
-            "Скоро здесь появится возможность приобрести безлимитный доступ."
-        )
+        await message.answer(limit_text())
         return
 
     sign = get_zodiac_sign(day, month)
