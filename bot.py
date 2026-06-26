@@ -24,6 +24,8 @@ from limits import (
     limit_text,
 )
 
+from storage import user_data
+
 load_dotenv()
 
 TOKEN = os.getenv("BOT_TOKEN")
@@ -37,10 +39,6 @@ bot = Bot(
 
 dp = Dispatcher()
 
-# Временное хранение в памяти.
-# ВАЖНО: после перезапуска Railway эти данные обнуляются.
-# Позже это лучше перенести в SQLite/PostgreSQL.
-user_data = {}
 
 geolocator = Nominatim(
     user_agent="whoami_zodiacbot",
