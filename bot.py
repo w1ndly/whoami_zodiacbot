@@ -526,14 +526,14 @@ async def handle_callback(callback: CallbackQuery):
             await callback.message.answer(limit_text())
             return
 
-parts = callback.data.replace("birth_place_", "").split("_")
+        parts = callback.data.replace("birth_place_", "").split("_")
 
-if len(parts) != 2:
-    await callback.message.answer(
-        "Похоже, эта кнопка устарела.\n\n"
-        "Введите место рождения еще раз."
-    )
-    return
+        if len(parts) != 2:
+            await callback.message.answer(
+                "Похоже, эта кнопка устарела.\n\n"
+                "Введите место рождения еще раз."
+            )
+            return
 
         request_id = int(parts[0])
         index = int(parts[1])
