@@ -1,5 +1,6 @@
 import asyncio
 import os
+from profile_service import send_limit_if_needed
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 import swisseph as swe
@@ -442,15 +443,6 @@ def birth_time_question_keyboard() -> InlineKeyboardMarkup:
         ]
     )
 
-
-async def send_limit_if_needed(message: Message, user_id: int) -> bool:
-    if can_use_check(user_id):
-        return False
-
-    await message.answer(limit_text())
-    return True
-
-
 @dp.message(CommandStart())
 async def start(message: Message):
     user_data.pop(message.from_user.id, None)
@@ -472,6 +464,8 @@ async def start(message: Message):
         "/profile — ваш профиль\n"
         "/feedback — обратная связь"
     )
+
+    add_check(user_id)
 
 
 @dp.message(Command("profile"))
@@ -664,6 +658,7 @@ async def handle_callback(callback: CallbackQuery):
             "Теперь вы знаете. И все, что осталось — найти точное время своего рождения.\n\n"
             f"Осталось проверок: <b>{get_remaining_checks(user_id)}</b>"
         )
+        add_check(user_id)
         return
 
     await callback.message.answer(
@@ -801,6 +796,15 @@ async def handle_message(message: Message):
             "Без точного времени рождения невозможно определить знак на 100%.\n\n"
             "Время рождения известно?",
             reply_markup=birth_time_question_keyboard()
+        )
+        return
+
+    user_id = message.from_user.id
+
+    if not can_make_check(user_id):
+        await message.answer(
+            "🔒 Вы использовали все 10 бесплатных проверок.\n\n"
+            "Скоро здесь появится возможность приобрести безлимитный доступ."
         )
         return
 
