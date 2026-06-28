@@ -121,6 +121,18 @@ def render_result_message(sign: str, extra: str | None = None) -> str:
     symbol = get_sign_symbol(sign)
     element = get_sign_element(sign)
 
+    text = (
+        f"{symbol} Ваш знак Зодиака — <b>{sign}</b>\n\n"
+        f"Стихия: <b>{element}</b>\n\n"
+        "Теперь никаких сомнений.\n"
+        "Вы точно знаете свой знак Зодиака."
+    )
+
+    if extra:
+        text = f"{extra}\n\n{text}"
+
+    return text
+
 def render_place_not_found_text() -> str:
     return (
         "Мне не удалось найти такое место.\n\n"

@@ -23,6 +23,39 @@ def init_db() -> None:
     connection.commit()
     connection.close()
 
+def get_used_checks(user_id: int) -> int:
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute(
+        "SELECT used_checks FROM user_checks WHERE user_id = ?",
+        (user_id,)
+    )
+
+    row = cursor.fetchone()
+    connection.close()
+
+    if row is None:
+        return 0
+
+    return row[0]
+
+def add_check(user_id: int) -> None:
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute(
+        """
+        INSERT INTO user_checks(user_id, used_checks)
+        VALUES(?, 1)
+        ON CONFLICT(user_id)
+        DO UPDATE SET used_checks = used_checks + 1
+        """,
+        (user_id,)
+    )
+
+    connection.commit()
+    connection.close()
 
 if __name__ == "__main__":
     init_db()
