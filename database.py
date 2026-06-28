@@ -8,54 +8,54 @@ def get_connection():
 
 
 def init_db() -> None:
-    connection = get_connection()
-    cursor = connection.cursor()
+    with get_connection() as connection:
+        cursor = connection.cursor()
 
-    cursor.execute(
-        """
-        CREATE TABLE IF NOT EXISTS user_checks (
-            user_id INTEGER PRIMARY KEY,
-            used_checks INTEGER NOT NULL DEFAULT 0
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS user_checks (
+                user_id INTEGER PRIMARY KEY,
+                used_checks INTEGER NOT NULL DEFAULT 0
+            )
+            """
         )
-        """
-    )
 
-    connection.commit()
-    connection.close()
+        connection.commit()
+
 
 def get_used_checks(user_id: int) -> int:
-    connection = get_connection()
-    cursor = connection.cursor()
+    with get_connection() as connection:
+        cursor = connection.cursor()
 
-    cursor.execute(
-        "SELECT used_checks FROM user_checks WHERE user_id = ?",
-        (user_id,)
-    )
+        cursor.execute(
+            "SELECT used_checks FROM user_checks WHERE user_id = ?",
+            (user_id,)
+        )
 
-    row = cursor.fetchone()
-    connection.close()
+        row = cursor.fetchone()
 
     if row is None:
         return 0
 
     return row[0]
 
+
 def increment_used_checks(user_id: int) -> None:
-    connection = get_connection()
-    cursor = connection.cursor()
+    with get_connection() as connection:
+        cursor = connection.cursor()
 
-    cursor.execute(
-        """
-        INSERT INTO user_checks(user_id, used_checks)
-        VALUES(?, 1)
-        ON CONFLICT(user_id)
-        DO UPDATE SET used_checks = used_checks + 1
-        """,
-        (user_id,)
-    )
+        cursor.execute(
+            """
+            INSERT INTO user_checks(user_id, used_checks)
+            VALUES(?, 1)
+            ON CONFLICT(user_id)
+            DO UPDATE SET used_checks = used_checks + 1
+            """,
+            (user_id,)
+        )
 
-    connection.commit()
-    connection.close()
+        connection.commit()
+
 
 if __name__ == "__main__":
     init_db()
