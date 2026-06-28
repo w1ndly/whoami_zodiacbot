@@ -148,6 +148,18 @@ def render_place_choose_text() -> str:
 
     return text
 
+def render_place_request_text(prefix: str | None = None) -> str:
+    text = (
+        "Введите место рождения:\n"
+        "<b>город, страна</b>\n\n"
+        "Например:\n"
+        "<b>Москва, Россия</b>"
+    )
+
+    if prefix:
+        text = f"{prefix}\n\n{text}"
+
+    return text
 
 def country_to_flag(country_name: str) -> str:
     return FLAGS.get(country_name, "🌍")
@@ -528,11 +540,9 @@ async def handle_callback(callback: CallbackQuery):
         user_data[user_id] = data
 
         await callback.message.answer(
-            "Хорошо. Чтобы определить время перехода Солнца, мне нужно место рождения.\n\n"
-            "Введите место рождения:\n"
-            "город, страна\n\n"
-            "Например:\n"
-            "Москва, Россия"
+            render_place_request_text(
+                "Хорошо. Чтобы определить время перехода Солнца, мне нужно место рождения."
+            )
         )
         return
 
@@ -713,9 +723,9 @@ async def handle_message(message: Message):
             user_data[user_id] = data
 
             await message.answer(
-                "Хорошо. Будет использовано условное время 12:00.\n\n"
-                "Теперь введите место рождения:\n"
-                "город, страна"
+                render_place_request_text(
+                    "Хорошо. Будет использовано условное время 12:00."
+                )
             )
             return
 
