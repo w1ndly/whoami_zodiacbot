@@ -121,6 +121,21 @@ def render_result_message(sign: str, extra: str | None = None) -> str:
     symbol = get_sign_symbol(sign)
     element = get_sign_element(sign)
 
+def render_place_not_found_text() -> str:
+    return (
+        "Мне не удалось найти такое место.\n\n"
+        "Пожалуйста, введите место рождения подробнее:\n"
+        "<b>город, страна</b>\n\n"
+        "Например:\n"
+        "<b>Москва, Россия</b>"
+    )
+
+def render_place_choose_text() -> str:
+    return (
+        "🌍 Я нашел несколько подходящих вариантов.\n\n"
+        "Пожалуйста, выберите место рождения:"
+    )
+
     text = (
         f"{symbol} Ваш знак Зодиака — <b>{sign}</b>\n\n"
         f"Стихия: <b>{element}</b>\n\n"
@@ -535,8 +550,15 @@ async def handle_callback(callback: CallbackQuery):
             )
             return
 
-        request_id = int(parts[0])
-        index = int(parts[1])
+        try:
+            request_id = int(parts[0])
+            index = int(parts[1])
+        except ValueError:
+            await callback.message.answer(
+                "Похоже, эта кнопка устарела.\n\n"
+                "Введите место рождения еще раз."
+            )
+            return
 
         if request_id != data.get("place_request_id"):
             await callback.message.answer(
@@ -603,8 +625,15 @@ async def handle_callback(callback: CallbackQuery):
             )
             return
 
-        request_id = int(parts[0])
-        index = int(parts[1])
+        try:
+            request_id = int(parts[0])
+            index = int(parts[1])
+        except ValueError:
+            await callback.message.answer(
+                "Похоже, эта кнопка устарела.\n\n"
+                "Введите место рождения еще раз."
+            )
+            return
 
         if request_id != data.get("place_request_id"):
             await callback.message.answer(
@@ -721,13 +750,7 @@ async def handle_message(message: Message):
         places = find_places(text)
 
         if not places:
-            await message.answer(
-                "Не нашел такой город.\n\n"
-                "Введите место рождения еще раз в формате:\n"
-                "<b>город, страна</b>\n\n"
-                "Например:\n"
-                "<b>Москва, Россия</b>"
-            )
+            await message.answer(render_place_not_found_text())
             return
 
         place_request_id = data.get("place_request_id", 0) + 1
@@ -737,23 +760,15 @@ async def handle_message(message: Message):
         user_data[user_id] = data
 
         await message.answer(
-            "🌍 Я нашел несколько подходящих вариантов.\n\n"
-            "Пожалуйста, выберите место рождения:",
+            render_place_choose_text(),
             reply_markup=places_keyboard(places, "birth_place", place_request_id)
         )
-        return
 
     if state == "waiting_for_transition_place":
         places = find_places(text)
 
         if not places:
-            await message.answer(
-                "Не нашел такой город.\n\n"
-                "Введите место рождения еще раз в формате:\n"
-                "<b>город, страна</b>\n\n"
-                "Например:\n"
-                "<b>Москва, Россия</b>"
-            )
+            await message.answer(render_place_not_found_text())
             return
 
         place_request_id = data.get("place_request_id", 0) + 1
@@ -763,11 +778,9 @@ async def handle_message(message: Message):
         user_data[user_id] = data
 
         await message.answer(
-            "🌍 Я нашел несколько подходящих вариантов.\n\n"
-            "Пожалуйста, выберите место рождения:",
+            render_place_choose_text(),
             reply_markup=places_keyboard(places, "transition_place", place_request_id)
         )
-        return
 
     try:
         birth_date = datetime.strptime(text, "%d.%m.%Y")
