@@ -562,9 +562,14 @@ async def handle_callback(callback: CallbackQuery):
         )
 
         if sign is None:
+            data["state"] = "waiting_for_place"
+            user_data[user_id] = data
+
             await callback.message.answer(
-                "Не удалось рассчитать знак для этого места.\n\n"
-                "Попробуйте ввести место рождения подробнее."
+                "Не удалось рассчитать знак для выбранного места.\n\n"
+                "Пожалуйста, введите место рождения еще раз подробнее.\n\n"
+                "Например:\n"
+                "<b>Москва, Россия</b>"
             )
             return
 
@@ -625,9 +630,14 @@ async def handle_callback(callback: CallbackQuery):
         )
 
         if result is None:
+            data["state"] = "waiting_for_transition_place"
+            user_data[user_id] = data
+
             await callback.message.answer(
-                "Не удалось рассчитать переход Солнца для этого места.\n\n"
-                "Попробуйте ввести место рождения подробнее."
+                "Не удалось рассчитать переход Солнца для выбранного места.\n\n"
+                "Пожалуйста, введите место рождения еще раз подробнее.\n\n"
+                "Например:\n"
+                "<b>Москва, Россия</b>"
             )
             return
 
