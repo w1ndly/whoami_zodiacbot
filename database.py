@@ -40,7 +40,7 @@ def get_used_checks(user_id: int) -> int:
 
     return row[0]
 
-def add_check(user_id: int) -> None:
+def increment_used_checks(user_id: int) -> None:
     connection = get_connection()
     cursor = connection.cursor()
 

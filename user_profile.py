@@ -1,8 +1,11 @@
 from limits import FREE_CHECKS_PER_MONTH
-from storage import user_checks
+from storage import (
+    get_user_checks,
+    add_user_check,
+)
 
 def get_user_profile(user_id: int) -> dict:
-    used = user_checks.get(user_id, 0)
+    used = get_user_checks(user_id)
     remaining = max(FREE_CHECKS_PER_MONTH - used, 0)
 
     return {
@@ -20,7 +23,7 @@ def can_make_check(user_id: int) -> bool:
 
 
 def add_check(user_id: int) -> None:
-    user_checks[user_id] = user_checks.get(user_id, 0) + 1
+    add_user_check(user_id)
 
 
 def get_remaining_checks(user_id: int) -> int:
