@@ -734,12 +734,12 @@ async def handle_message(message: Message):
         except ValueError:
             await message.answer(
                 "Похоже, время введено не в том формате.\n\n"
-                "Введите время так:\n"
-                "чч:мм\n\n"
+                "Введите время рождения так:\n"
+                "<b>чч:мм</b>\n\n"
                 "Например:\n"
-                "14:30\n\n"
+                "<b>14:30</b>\n\n"
                 "Если время неизвестно, напишите:\n"
-                "Не знаю"
+                "<b>Не знаю</b>"
             )
             return
 
@@ -748,11 +748,9 @@ async def handle_message(message: Message):
         user_data[user_id] = data
 
         await message.answer(
-            f"Время рождения принято: <b>{birth_time.strftime('%H:%M')}</b>.\n\n"
-            "Теперь введите место рождения:\n"
-            "город, страна\n\n"
-            "Например:\n"
-            "Москва, Россия"
+            render_place_request_text(
+                f"Время рождения принято: <b>{birth_time.strftime('%H:%M')}</b>."
+            )
         )
         return
 
@@ -797,10 +795,10 @@ async def handle_message(message: Message):
     except ValueError:
         await message.answer(
             "Похоже, дата введена не в том формате.\n\n"
-            "Введите дату так:\n"
-            "дд.мм.гггг\n\n"
+            "Введите дату рождения так:\n"
+            "<b>дд.мм.гггг</b>\n\n"
             "Например:\n"
-            "23.08.1994"
+            "<b>23.08.1994</b>"
         )
         return
 
