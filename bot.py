@@ -31,9 +31,11 @@ from storage import (
 
 from database import init_db
 from handlers.feedback import router as feedback_router
+from handlers.help import router as help_router
 
 dp = Dispatcher()
 dp.include_router(feedback_router)
+dp.include_router(help_router)
 
 load_dotenv()
 
@@ -503,26 +505,6 @@ async def clear(message: Message):
 async def cmd_profile(message: Message):
     await message.answer(
         render_profile_text(message.from_user.id)
-    )
-
-
-@dp.message(Command("help"))
-async def cmd_help(message: Message):
-    await message.answer(
-        "🤖 Помощь по боту\n\n"
-        "Я помогу точно определить ваш знак Зодиака, в том числе если вы родились в пограничную дату.\n\n"
-        "Команды:\n"
-        "/start — начать заново\n"
-        "/profile — ваш профиль и остаток проверок\n"
-        "/clear — очистить введенные данные\n"
-        "/feedback — обратная связь\n"
-        "/help — список команд\n\n"
-        "Как пользоваться:\n"
-        "1. Введите дату рождения в формате <b>дд.мм.гггг</b>.\n"
-        "2. Если дата обычная — я сразу покажу знак.\n"
-        "3. Если дата пограничная — уточню время и место рождения.\n\n"
-        "Пример даты:\n"
-        "<b>23.08.1994</b>"
     )
 
 
