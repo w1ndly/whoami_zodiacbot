@@ -25,6 +25,7 @@ from limits import (
 )
 
 from storage import user_data
+from database import init_db
 
 load_dotenv()
 
@@ -852,6 +853,8 @@ async def handle_message(message: Message):
 
 
 async def main():
+    init_db()
+    print("База данных проверена и готова.")
     print("Бот запущен. Жду сообщения...")
     await dp.start_polling(bot)
 
