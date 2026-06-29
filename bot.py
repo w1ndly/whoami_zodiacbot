@@ -24,7 +24,11 @@ from limits import (
     limit_text,
 )
 
-from storage import user_data
+from storage import (
+    user_data,
+    ensure_user,
+)
+
 from database import init_db
 
 load_dotenv()
@@ -452,7 +456,16 @@ def birth_time_question_keyboard() -> InlineKeyboardMarkup:
 
 @dp.message(CommandStart())
 async def start(message: Message):
-    user_data.pop(message.from_user.id, None)
+    user = message.from_user
+
+    ensure_user(
+        user_id=user.id,
+        username=user.username,
+        first_name=user.first_name,
+        language_code=user.language_code,
+    )
+
+    user_data.pop(user.id, None)
 
     await message.answer(
         "✨ Добро пожаловать в бот <b>Кто я по знаку?</b>\n\n"

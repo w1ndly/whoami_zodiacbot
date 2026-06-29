@@ -1,5 +1,6 @@
 import os
 import sqlite3
+from datetime import datetime, UTC
 
 volume_path = os.getenv("RAILWAY_VOLUME_MOUNT_PATH")
 
@@ -90,6 +91,127 @@ def increment_used_checks(user_id: int) -> None:
         )
 
         connection.commit()
+
+def register_user(
+    user_id: int,
+    username: str | None,
+    first_name: str | None,
+    language_code: str | None,
+) -> None:
+    now = datetime.now(UTC).isoformat()
+
+    with get_connection() as connection:
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            INSERT INTO users (
+                user_id,
+                username,
+                first_name,
+                language_code,
+                created_at,
+                last_activity
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+
+            ON CONFLICT(user_id)
+            DO UPDATE SET
+                username = excluded.username,
+                first_name = excluded.first_name,
+                language_code = excluded.language_code,
+                last_activity = excluded.last_activity
+            """,
+            (
+                user_id,
+                username,
+                first_name,
+                language_code,
+                now,
+                now,
+            )
+        )
+
+        connection.commit()
+
+from datetime import datetime
+
+
+def register_user(
+    user_id: int,
+    username: str | None,
+    first_name: str | None,
+    language_code: str | None,
+) -> None:
+    now = datetime.utcnow().isoformat()
+
+    with get_connection() as connection:
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            INSERT INTO users (
+                user_id,
+                username,
+                first_name,
+                language_code,
+                created_at,
+                last_activity
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+
+            ON CONFLICT(user_id)
+            DO UPDATE SET
+                username = excluded.username,
+                first_name = excluded.first_name,
+                language_code = excluded.language_code,
+                last_activity = excluded.last_activity
+            """,
+            (
+                user_id,
+                username,
+                first_name,
+                language_code,
+                now,
+                now,
+            )
+        )
+
+        connection.commit()
+
+
+def get_user(user_id: int) -> dict | None:
+    with get_connection() as connection:
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            SELECT
+                user_id,
+                username,
+                first_name,
+                language_code,
+                created_at,
+                last_activity
+            FROM users
+            WHERE user_id = ?
+            """,
+            (user_id,)
+        )
+
+        row = cursor.fetchone()
+
+    if row is None:
+        return None
+
+    return {
+        "user_id": row[0],
+        "username": row[1],
+        "first_name": row[2],
+        "language_code": row[3],
+        "created_at": row[4],
+        "last_activity": row[5],
+    }
 
 
 if __name__ == "__main__":
