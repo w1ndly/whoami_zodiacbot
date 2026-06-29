@@ -37,10 +37,22 @@ def get_remaining_checks(user_id: int) -> int:
 def render_profile_text(user_id: int) -> str:
     profile = get_user_profile(user_id)
 
+    telegram_user = profile.get("telegram_user")
+
+    username = "—"
+
+    if telegram_user and telegram_user.get("username"):
+        username = f"@{telegram_user['username']}"
+
+    registration_date = "—"
+
+    if telegram_user and telegram_user.get("created_at"):
+        registration_date = telegram_user["created_at"][:10]
+
     return (
         "👤 <b>Ваш профиль</b>\n\n"
         f"Статус: <b>Free</b>\n"
         f"Бесплатных проверок: <b>{profile['remaining_checks']} из {profile['free_limit']}</b>\n\n"
-        "Пока лимит хранится в памяти бота.\n"
-        "После перезапуска сервера счетчик начнется заново."
+        f"Telegram: <b>{username}</b>\n"
+        f"Дата регистрации: <b>{registration_date}</b>"
     )
