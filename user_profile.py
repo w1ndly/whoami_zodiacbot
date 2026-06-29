@@ -2,11 +2,13 @@ from limits import FREE_CHECKS_PER_MONTH
 from storage import (
     get_user_checks,
     add_user_check,
+    get_user_data,
 )
 
 def get_user_profile(user_id: int) -> dict:
     used = get_user_checks(user_id)
     remaining = max(FREE_CHECKS_PER_MONTH - used, 0)
+    user_data = get_user_data(user_id)
 
     return {
         "user_id": user_id,
@@ -14,6 +16,7 @@ def get_user_profile(user_id: int) -> dict:
         "used_checks": used,
         "free_limit": FREE_CHECKS_PER_MONTH,
         "remaining_checks": remaining,
+        "telegram_user": user_data,
     }
 
 

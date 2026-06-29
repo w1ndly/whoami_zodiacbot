@@ -9,6 +9,7 @@ from database import (
     get_used_checks,
     increment_used_checks,
     register_user,
+    get_user,
 )
 
 user_data = {}
@@ -34,3 +35,6 @@ def ensure_user(
         first_name=first_name,
         language_code=language_code,
     )
+
+def get_user_data(user_id: int) -> dict | None:
+    return get_user(user_id)
