@@ -727,6 +727,7 @@ async def handle_message(message: Message):
             render_place_choose_text(),
             reply_markup=places_keyboard(places, "birth_place", place_request_id)
         )
+        return
 
     if state == "waiting_for_transition_place":
         places = find_places(text)
@@ -745,6 +746,7 @@ async def handle_message(message: Message):
             render_place_choose_text(),
             reply_markup=places_keyboard(places, "transition_place", place_request_id)
         )
+        return
 
     try:
         birth_date = datetime.strptime(text, "%d.%m.%Y")
