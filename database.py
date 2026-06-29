@@ -42,6 +42,19 @@ def init_db() -> None:
             """
         )
 
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS users (
+                user_id INTEGER PRIMARY KEY,
+                username TEXT,
+                first_name TEXT,
+                language_code TEXT,
+                created_at TEXT NOT NULL,
+                last_activity TEXT NOT NULL
+            )
+            """
+        )
+
         connection.commit()
 
 
