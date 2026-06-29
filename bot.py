@@ -30,6 +30,7 @@ from storage import (
 )
 
 from database import init_db
+from handlers.feedback import router as feedback_router
 
 load_dotenv()
 
@@ -43,6 +44,7 @@ bot = Bot(
 )
 
 dp = Dispatcher()
+dp.include_router(feedback_router)
 
 
 geolocator = Nominatim(
@@ -483,15 +485,6 @@ async def start(message: Message):
         "/help — помощь\n"
         "/clear — очистить введенные данные\n"
         "/feedback — обратная связь"
-    )
-
-
-@dp.message(Command("feedback"))
-async def cmd_feedback(message: Message):
-    await message.answer(
-        "📩 Обратная связь\n\n"
-        "Если вы заметили ошибку, нашли неточность или хотите предложить улучшение бота, напишите:\n\n"
-        f"{SUPPORT_CONTACT}"
     )
 
 
