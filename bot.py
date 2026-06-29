@@ -32,10 +32,12 @@ from storage import (
 from database import init_db
 from handlers.feedback import router as feedback_router
 from handlers.help import router as help_router
+from handlers.profile import router as profile_router
 
 dp = Dispatcher()
 dp.include_router(feedback_router)
 dp.include_router(help_router)
+dp.include_router(profile_router)
 
 load_dotenv()
 
@@ -498,13 +500,6 @@ async def clear(message: Message):
         "Теперь вы можете начать заново.\n\n"
         "Введите дату рождения в формате:\n"
         "дд.мм.гггг"
-    )
-
-
-@dp.message(Command("profile"))
-async def cmd_profile(message: Message):
-    await message.answer(
-        render_profile_text(message.from_user.id)
     )
 
 
