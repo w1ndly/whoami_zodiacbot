@@ -1,7 +1,12 @@
 import os
 import sqlite3
 
-DB_NAME = os.getenv("DATABASE_PATH", "bot.db")
+volume_path = os.getenv("RAILWAY_VOLUME_MOUNT_PATH")
+
+if volume_path:
+    DB_NAME = os.path.join(volume_path, "bot.db")
+else:
+    DB_NAME = os.getenv("DATABASE_PATH", "bot.db")
 
 def print_database_debug_info() -> None:
     print("=== DATABASE DEBUG ===")
