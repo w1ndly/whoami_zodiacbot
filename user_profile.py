@@ -53,6 +53,6 @@ def render_profile_text(user_id: int) -> str:
         "👤 <b>Ваш профиль</b>\n\n"
         f"Статус: <b>Free</b>\n"
         f"Бесплатных проверок: <b>{profile['remaining_checks']} из {profile['free_limit']}</b>\n\n"
-        f"Telegram: <b>{username}</b>\n"
+        f"Telegram: <b>{username}</b>\n\n"
         f"Дата регистрации: <b>{registration_date}</b>"
     )
