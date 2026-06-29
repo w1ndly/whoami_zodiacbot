@@ -34,12 +34,14 @@ from handlers.feedback import router as feedback_router
 from handlers.help import router as help_router
 from handlers.profile import router as profile_router
 from handlers.clear import router as clear_router
+from handlers.start import router as start_router
 
 dp = Dispatcher()
 dp.include_router(feedback_router)
 dp.include_router(help_router)
 dp.include_router(profile_router)
 dp.include_router(clear_router)
+dp.include_router(start_router)
 
 load_dotenv()
 
@@ -459,37 +461,6 @@ def birth_time_question_keyboard() -> InlineKeyboardMarkup:
                 InlineKeyboardButton(text="❌ Нет", callback_data="birth_time_no"),
             ]
         ]
-    )
-
-@dp.message(CommandStart())
-async def start(message: Message):
-    user = message.from_user
-
-    ensure_user(
-        user_id=user.id,
-        username=user.username,
-        first_name=user.first_name,
-        language_code=user.language_code,
-    )
-
-    user_data.pop(user.id, None)
-
-    await message.answer(
-        "✨ Добро пожаловать в бот <b>Кто я по знаку?</b>\n\n"
-        "Я помогу точно определить ваш знак Зодиака.\n\n"
-        "🔹 Для большинства дат знак определяется сразу.\n"
-        "🔹 Для пограничных дат учитываются время и место рождения.\n"
-        "🔹 Расчеты выполняются с астрономической точностью.\n\n"
-        f"В бесплатной версии доступно <b>{FREE_CHECKS_PER_MONTH}</b> проверок.\n\n"
-        "Введите дату рождения в формате:\n"
-        "📅 <b>дд.мм.гггг</b>\n\n"
-        "Например:\n"
-        "<b>23.08.1994</b>\n\n"
-        "📌 Полезные команды:\n"
-        "/profile — ваш профиль и остаток проверок\n"
-        "/help — помощь\n"
-        "/clear — очистить введенные данные\n"
-        "/feedback — обратная связь"
     )
 
 
