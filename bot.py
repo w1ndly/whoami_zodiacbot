@@ -32,6 +32,9 @@ from storage import (
 from database import init_db
 from handlers.feedback import router as feedback_router
 
+dp = Dispatcher()
+dp.include_router(feedback_router)
+
 load_dotenv()
 
 TOKEN = os.getenv("BOT_TOKEN")
@@ -42,10 +45,6 @@ bot = Bot(
     token=TOKEN,
     default=DefaultBotProperties(parse_mode=ParseMode.HTML)
 )
-
-dp = Dispatcher()
-dp.include_router(feedback_router)
-
 
 geolocator = Nominatim(
     user_agent="whoami_zodiacbot",
