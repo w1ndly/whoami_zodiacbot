@@ -33,11 +33,13 @@ from database import init_db
 from handlers.feedback import router as feedback_router
 from handlers.help import router as help_router
 from handlers.profile import router as profile_router
+from handlers.clear import router as clear_router
 
 dp = Dispatcher()
 dp.include_router(feedback_router)
 dp.include_router(help_router)
 dp.include_router(profile_router)
+dp.include_router(clear_router)
 
 load_dotenv()
 
@@ -488,18 +490,6 @@ async def start(message: Message):
         "/help — помощь\n"
         "/clear — очистить введенные данные\n"
         "/feedback — обратная связь"
-    )
-
-
-@dp.message(Command("clear"))
-async def clear(message: Message):
-    user_data.pop(message.from_user.id, None)
-
-    await message.answer(
-        "✨ Все введенные данные очищены.\n\n"
-        "Теперь вы можете начать заново.\n\n"
-        "Введите дату рождения в формате:\n"
-        "дд.мм.гггг"
     )
 
 
