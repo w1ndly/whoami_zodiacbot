@@ -3,7 +3,7 @@ import os
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 import swisseph as swe
-from aiogram import Bot, Dispatcher
+from aiogram import Bot, Dispatcher, F
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart, Command
@@ -727,7 +727,7 @@ async def handle_callback(callback: CallbackQuery):
     )
 
 
-@dp.message()
+@dp.message(F.text & ~F.text.startswith("/"))
 async def handle_message(message: Message):
     user_id = message.from_user.id
     text = message.text.strip()
