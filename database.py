@@ -1,7 +1,24 @@
+import os
 import sqlite3
 
-DB_NAME = "bot.db"
+DB_NAME = os.getenv("DATABASE_PATH", "bot.db")
 
+def print_database_debug_info() -> None:
+    print("=== DATABASE DEBUG ===")
+    print(f"DATABASE_PATH: {os.getenv('DATABASE_PATH')}")
+    print(f"RAILWAY_VOLUME_MOUNT_PATH: {os.getenv('RAILWAY_VOLUME_MOUNT_PATH')}")
+    print(f"DB_NAME: {DB_NAME}")
+    print(f"Current working directory: {os.getcwd()}")
+    print(f"Database file exists: {os.path.exists(DB_NAME)}")
+
+    db_dir = os.path.dirname(DB_NAME)
+
+    if db_dir:
+        print(f"Database directory: {db_dir}")
+        print(f"Database directory exists: {os.path.exists(db_dir)}")
+        print(f"Database directory writable: {os.access(db_dir, os.W_OK)}")
+
+    print("======================")
 
 def get_connection():
     return sqlite3.connect(DB_NAME)
@@ -58,5 +75,6 @@ def increment_used_checks(user_id: int) -> None:
 
 
 if __name__ == "__main__":
+    print_database_debug_info()
     init_db()
     print("База данных создана и готова к работе.")
