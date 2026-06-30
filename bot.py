@@ -36,6 +36,7 @@ from handlers.profile import router as profile_router
 from handlers.clear import router as clear_router
 from handlers.start import router as start_router
 from handlers.callbacks import router as callbacks_router, configure_callbacks
+from handlers.birth import handle_waiting_for_time
 
 dp = Dispatcher()
 dp.include_router(feedback_router)
@@ -473,42 +474,13 @@ async def handle_message(message: Message):
     data = user_data.get(user_id, {})
     state = data.get("state")
 
-    if state == "waiting_for_time":
-        if text.lower() in ["не знаю", "неизвестно", "нет"]:
-            data["birth_time"] = "12:00"
-            data["state"] = "waiting_for_place"
-            user_data[user_id] = data
-
-            await message.answer(
-                render_place_request_text(
-                    "Хорошо. Будет использовано условное время 12:00."
-                )
-            )
-            return
-
-        try:
-            birth_time = datetime.strptime(text, "%H:%M")
-        except ValueError:
-            await message.answer(
-                "Похоже, время введено не в том формате.\n\n"
-                "Введите время рождения так:\n"
-                "<b>чч:мм</b>\n\n"
-                "Например:\n"
-                "<b>14:30</b>\n\n"
-                "Если время неизвестно, напишите:\n"
-                "<b>Не знаю</b>"
-            )
-            return
-
-        data["birth_time"] = birth_time.strftime("%H:%M")
-        data["state"] = "waiting_for_place"
-        user_data[user_id] = data
-
-        await message.answer(
-            render_place_request_text(
-                f"Время рождения принято: <b>{birth_time.strftime('%H:%M')}</b>."
-            )
-        )
+    if await handle_waiting_for_time(
+        message=message,
+        text=text,
+        data=data,
+        user_id=user_id,
+        render_place_request_text=render_place_request_text,
+    ):
         return
 
     if state == "waiting_for_place":
