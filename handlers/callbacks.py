@@ -9,14 +9,6 @@ from user_profile import (
 )
 from limits import limit_text
 
-from bot import (
-    calculate_sun_sign,
-    find_sun_transition_time,
-    render_place_request_text,
-    render_result_message,
-    short_place_name,
-)
-
 router = Router()
 
 
@@ -24,6 +16,14 @@ router = Router()
 async def handle_callback(callback: CallbackQuery):
     user_id = callback.from_user.id
     data = user_data.get(user_id, {})
+
+    from bot import (
+        calculate_sun_sign,
+        find_sun_transition_time,
+        render_place_request_text,
+        render_result_message,
+        short_place_name,
+    )
 
     await callback.answer()
 
