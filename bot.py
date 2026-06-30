@@ -36,7 +36,11 @@ from handlers.profile import router as profile_router
 from handlers.clear import router as clear_router
 from handlers.start import router as start_router
 from handlers.callbacks import router as callbacks_router, configure_callbacks
-from handlers.birth import handle_waiting_for_time
+from handlers.birth import (
+    handle_waiting_for_time,
+    handle_waiting_for_place,
+    handle_waiting_for_transition_place,
+)
 from handlers.dev import router as dev_router
 
 dp = Dispatcher()
@@ -485,42 +489,28 @@ async def handle_message(message: Message):
     ):
         return
 
-    if state == "waiting_for_place":
-        places = find_places(text)
-
-        if not places:
-            await message.answer(render_place_not_found_text())
-            return
-
-        place_request_id = data.get("place_request_id", 0) + 1
-
-        data["place_request_id"] = place_request_id
-        data["place_options"] = places
-        user_data[user_id] = data
-
-        await message.answer(
-            render_place_choose_text(),
-            reply_markup=places_keyboard(places, "birth_place", place_request_id)
-        )
+    if await handle_waiting_for_place(
+        message=message,
+        text=text,
+        data=data,
+        user_id=user_id,
+        find_places=find_places,
+        render_place_not_found_text=render_place_not_found_text,
+        render_place_choose_text=render_place_choose_text,
+        places_keyboard=places_keyboard,
+    ):
         return
 
-    if state == "waiting_for_transition_place":
-        places = find_places(text)
-
-        if not places:
-            await message.answer(render_place_not_found_text())
-            return
-
-        place_request_id = data.get("place_request_id", 0) + 1
-
-        data["place_request_id"] = place_request_id
-        data["place_options"] = places
-        user_data[user_id] = data
-
-        await message.answer(
-            render_place_choose_text(),
-            reply_markup=places_keyboard(places, "transition_place", place_request_id)
-        )
+    if await handle_waiting_for_transition_place(
+        message=message,
+        text=text,
+        data=data,
+        user_id=user_id,
+        find_places=find_places,
+        render_place_not_found_text=render_place_not_found_text,
+        render_place_choose_text=render_place_choose_text,
+        places_keyboard=places_keyboard,
+    ):
         return
 
     try:

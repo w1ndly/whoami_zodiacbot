@@ -51,3 +51,67 @@ async def handle_waiting_for_time(
         )
     )
     return True
+
+
+async def handle_waiting_for_place(
+    message: Message,
+    text: str,
+    data: dict,
+    user_id: int,
+    find_places,
+    render_place_not_found_text,
+    render_place_choose_text,
+    places_keyboard,
+) -> bool:
+    if data.get("state") != "waiting_for_place":
+        return False
+
+    places = find_places(text)
+
+    if not places:
+        await message.answer(render_place_not_found_text())
+        return True
+
+    place_request_id = data.get("place_request_id", 0) + 1
+
+    data["place_request_id"] = place_request_id
+    data["place_options"] = places
+    user_data[user_id] = data
+
+    await message.answer(
+        render_place_choose_text(),
+        reply_markup=places_keyboard(places, "birth_place", place_request_id)
+    )
+    return True
+
+
+async def handle_waiting_for_transition_place(
+    message: Message,
+    text: str,
+    data: dict,
+    user_id: int,
+    find_places,
+    render_place_not_found_text,
+    render_place_choose_text,
+    places_keyboard,
+) -> bool:
+    if data.get("state") != "waiting_for_transition_place":
+        return False
+
+    places = find_places(text)
+
+    if not places:
+        await message.answer(render_place_not_found_text())
+        return True
+
+    place_request_id = data.get("place_request_id", 0) + 1
+
+    data["place_request_id"] = place_request_id
+    data["place_options"] = places
+    user_data[user_id] = data
+
+    await message.answer(
+        render_place_choose_text(),
+        reply_markup=places_keyboard(places, "transition_place", place_request_id)
+    )
+    return True
