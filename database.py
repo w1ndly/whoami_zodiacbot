@@ -27,7 +27,7 @@ def print_database_debug_info() -> None:
     print("======================")
 
 def get_connection():
-    return sqlite3.connect(DB_NAME)
+    return sqlite3.connect(get_database_path())
 
 
 def init_db() -> None:
