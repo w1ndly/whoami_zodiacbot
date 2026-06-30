@@ -11,19 +11,36 @@ from limits import limit_text
 
 router = Router()
 
+calculate_sun_sign = None
+find_sun_transition_time = None
+render_place_request_text = None
+render_result_message = None
+short_place_name = None
+
+
+def configure_callbacks(
+    calc_sun_sign,
+    find_transition_time,
+    render_place_request,
+    render_result,
+    short_place,
+):
+    global calculate_sun_sign
+    global find_sun_transition_time
+    global render_place_request_text
+    global render_result_message
+    global short_place_name
+
+    calculate_sun_sign = calc_sun_sign
+    find_sun_transition_time = find_transition_time
+    render_place_request_text = render_place_request
+    render_result_message = render_result
+    short_place_name = short_place
 
 @router.callback_query()
 async def handle_callback(callback: CallbackQuery):
     user_id = callback.from_user.id
     data = user_data.get(user_id, {})
-
-    from bot import (
-        calculate_sun_sign,
-        find_sun_transition_time,
-        render_place_request_text,
-        render_result_message,
-        short_place_name,
-    )
 
     await callback.answer()
 

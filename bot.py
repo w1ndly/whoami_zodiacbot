@@ -35,7 +35,7 @@ from handlers.help import router as help_router
 from handlers.profile import router as profile_router
 from handlers.clear import router as clear_router
 from handlers.start import router as start_router
-from handlers.callbacks import router as callbacks_router
+from handlers.callbacks import router as from handlers.callbacks import router as callbacks_router, configure_callbacks
 
 dp = Dispatcher()
 dp.include_router(feedback_router)
@@ -600,6 +600,15 @@ async def handle_message(message: Message):
 
 async def main():
     init_db()
+
+    configure_callbacks(
+        calc_sun_sign=calculate_sun_sign,
+        find_transition_time=find_sun_transition_time,
+        render_place_request=render_place_request_text,
+        render_result=render_result_message,
+        short_place=short_place_name,
+    )
+
     print("База данных проверена и готова.")
     print("Бот запущен. Жду сообщения...")
     await dp.start_polling(bot)
