@@ -27,7 +27,7 @@ def print_database_debug_info() -> None:
     print("======================")
 
 def get_connection():
-    return sqlite3.connect(get_database_path())
+    return sqlite3.connect(DB_NAME)
 
 
 def init_db() -> None:
@@ -213,18 +213,20 @@ def get_user(user_id: int) -> dict | None:
         "last_activity": row[5],
     }
 
-def reset_user_checks(user_id: int):
-    with sqlite3.connect(get_database_path()) as conn:
-        conn.execute(
+def reset_user_checks(user_id: int) -> None:
+    with get_connection() as connection:
+        cursor = connection.cursor()
+
+        cursor.execute(
             """
             UPDATE user_checks
-            SET checks_used = 0
+            SET used_checks = 0
             WHERE user_id = ?
             """,
-            (user_id,),
+            (user_id,)
         )
 
-        conn.commit()
+        connection.commit()
 
 if __name__ == "__main__":
     print_database_debug_info()
