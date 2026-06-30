@@ -214,7 +214,7 @@ def get_user(user_id: int) -> dict | None:
     }
 
 def reset_user_checks(user_id: int):
-    with sqlite3.connect(DB_PATH) as conn:
+    with sqlite3.connect(get_database_path()) as conn:
         conn.execute(
             """
             UPDATE user_checks
