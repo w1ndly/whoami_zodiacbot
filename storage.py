@@ -10,6 +10,7 @@ from database import (
     increment_used_checks,
     register_user,
     get_user,
+    reset_user_checks as db_reset_user_checks,
 )
 
 user_data = {}
@@ -38,3 +39,6 @@ def ensure_user(
 
 def get_user_data(user_id: int) -> dict | None:
     return get_user(user_id)
+
+def reset_user_checks(user_id: int):
+    db_reset_user_checks(user_id)

@@ -213,6 +213,18 @@ def get_user(user_id: int) -> dict | None:
         "last_activity": row[5],
     }
 
+def reset_user_checks(user_id: int):
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute(
+            """
+            UPDATE user_checks
+            SET checks_used = 0
+            WHERE user_id = ?
+            """,
+            (user_id,),
+        )
+
+        conn.commit()
 
 if __name__ == "__main__":
     print_database_debug_info()

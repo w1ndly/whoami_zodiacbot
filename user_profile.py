@@ -3,6 +3,7 @@ from storage import (
     get_user_checks,
     add_user_check,
     get_user_data,
+    reset_user_checks,
 )
 
 def get_user_profile(user_id: int) -> dict:
@@ -56,3 +57,6 @@ def render_profile_text(user_id: int) -> str:
         f"Telegram: <b>{username}</b>\n\n"
         f"Дата регистрации: <b>{registration_date}</b>"
     )
+
+def reset_profile_checks(user_id: int):
+    reset_user_checks(user_id)
