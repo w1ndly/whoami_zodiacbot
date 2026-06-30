@@ -69,16 +69,30 @@
 
 ```text
 bot.py
+
+handlers/
+    start.py
+    help.py
+    profile.py
+    feedback.py
+    clear.py
+    callbacks.py
+    birth.py
+
 user_profile.py
-limits.py
 storage.py
 database.py
+limits.py
 zodiac_data.py
+
 requirements.txt
 Dockerfile
 Procfile
-CHANGELOG.md
+
 README.md
+CHANGELOG.md
+PROJECT_STATE.md
+ROADMAP.md
 ```
 
 ---
@@ -356,7 +370,7 @@ last_activity TEXT NOT NULL
 
 ## Коммиты
 
-После завершенного этапа делать коммит.
+После завершенного этапа делать коммит. На русском языке.
 
 Пример:
 

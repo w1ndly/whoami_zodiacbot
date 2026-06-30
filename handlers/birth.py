@@ -115,3 +115,67 @@ async def handle_waiting_for_transition_place(
         reply_markup=places_keyboard(places, "transition_place", place_request_id)
     )
     return True
+
+
+async def handle_birth_date(
+    message: Message,
+    text: str,
+    user_id: int,
+    is_border_date,
+    get_border_signs,
+    birth_time_question_keyboard,
+    can_make_check,
+    limit_text,
+    get_zodiac_sign,
+    add_check,
+    render_result_message,
+    get_remaining_checks,
+) -> bool:
+    try:
+        birth_date = datetime.strptime(text, "%d.%m.%Y")
+    except ValueError:
+        await message.answer(
+            "Похоже, дата введена не в том формате.\n\n"
+            "Введите дату рождения так:\n"
+            "<b>дд.мм.гггг</b>\n\n"
+            "Например:\n"
+            "<b>23.08.1994</b>"
+        )
+        return True
+
+    day = birth_date.day
+    month = birth_date.month
+
+    if is_border_date(day, month):
+        first_sign, second_sign = get_border_signs(day, month)
+
+        user_data[user_id] = {
+            "state": "border_time_question",
+            "birth_date": birth_date.strftime("%d.%m.%Y"),
+            "birth_time": None,
+            "place_options": [],
+        }
+
+        await message.answer(
+            "Вы родились в пограничный день ✨\n"
+            "В этот день Солнце переходило из одного знака зодиака в другой.\n\n"
+            f"Возможные варианты:\n"
+            f"{first_sign} или {second_sign}\n\n"
+            "Без точного времени рождения невозможно определить знак на 100%.\n\n"
+            "Время рождения известно?",
+            reply_markup=birth_time_question_keyboard()
+        )
+        return True
+
+    if not can_make_check(user_id):
+        await message.answer(limit_text())
+        return True
+
+    sign = get_zodiac_sign(day, month)
+    add_check(user_id)
+
+    await message.answer(
+        render_result_message(sign)
+        + f"\n\nОсталось проверок: <b>{get_remaining_checks(user_id)}</b>"
+    )
+    return True

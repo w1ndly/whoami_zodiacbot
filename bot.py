@@ -40,6 +40,7 @@ from handlers.birth import (
     handle_waiting_for_time,
     handle_waiting_for_place,
     handle_waiting_for_transition_place,
+    handle_birth_date,
 )
 from handlers.dev import router as dev_router
 
@@ -513,54 +514,20 @@ async def handle_message(message: Message):
     ):
         return
 
-    try:
-        birth_date = datetime.strptime(text, "%d.%m.%Y")
-    except ValueError:
-        await message.answer(
-            "Похоже, дата введена не в том формате.\n\n"
-            "Введите дату рождения так:\n"
-            "<b>дд.мм.гггг</b>\n\n"
-            "Например:\n"
-            "<b>23.08.1994</b>"
-        )
-        return
-
-    day = birth_date.day
-    month = birth_date.month
-
-    if is_border_date(day, month):
-        first_sign, second_sign = get_border_signs(day, month)
-
-        user_data[user_id] = {
-            "state": "border_time_question",
-            "birth_date": birth_date.strftime("%d.%m.%Y"),
-            "birth_time": None,
-            "place_options": [],
-        }
-
-        await message.answer(
-            "Вы родились в пограничный день ✨\n"
-            "В этот день Солнце переходило из одного знака зодиака в другой.\n\n"
-            f"Возможные варианты:\n"
-            f"{first_sign} или {second_sign}\n\n"
-            "Без точного времени рождения невозможно определить знак на 100%.\n\n"
-            "Время рождения известно?",
-            reply_markup=birth_time_question_keyboard()
-        )
-        return
-
-    if not can_make_check(user_id):
-        await message.answer(limit_text())
-        return
-
-    sign = get_zodiac_sign(day, month)
-    add_check(user_id)
-
-    await message.answer(
-        render_result_message(sign)
-        + f"\n\nОсталось проверок: <b>{get_remaining_checks(user_id)}</b>"
+    await handle_birth_date(
+        message=message,
+        text=text,
+        user_id=user_id,
+        is_border_date=is_border_date,
+        get_border_signs=get_border_signs,
+        birth_time_question_keyboard=birth_time_question_keyboard,
+        can_make_check=can_make_check,
+        limit_text=limit_text,
+        get_zodiac_sign=get_zodiac_sign,
+        add_check=add_check,
+        render_result_message=render_result_message,
+        get_remaining_checks=get_remaining_checks,
     )
-
 
 async def main():
     init_db()
