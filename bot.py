@@ -35,7 +35,7 @@ from handlers.help import router as help_router
 from handlers.profile import router as profile_router
 from handlers.clear import router as clear_router
 from handlers.start import router as start_router
-from handlers.callbacks import router as from handlers.callbacks import router as callbacks_router, configure_callbacks
+from handlers.callbacks import router as callbacks_router, configure_callbacks
 
 dp = Dispatcher()
 dp.include_router(feedback_router)
