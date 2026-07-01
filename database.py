@@ -250,23 +250,44 @@ def get_users_statistics() -> dict:
             "SELECT COUNT(*) FROM users WHERE substr(created_at, 1, 10) = ?",
             (today.isoformat(),)
         )
-        today_count = cursor.fetchone()[0]
+        new_today = cursor.fetchone()[0]
 
         cursor.execute(
             "SELECT COUNT(*) FROM users WHERE substr(created_at, 1, 10) >= ?",
             (week_ago.isoformat(),)
         )
-        week_count = cursor.fetchone()[0]
+        new_week = cursor.fetchone()[0]
 
         cursor.execute(
             "SELECT COUNT(*) FROM users WHERE substr(created_at, 1, 10) >= ?",
             (month_ago.isoformat(),)
         )
-        month_count = cursor.fetchone()[0]
+        new_month = cursor.fetchone()[0]
+
+        cursor.execute(
+            "SELECT COUNT(*) FROM users WHERE substr(last_activity, 1, 10) = ?",
+            (today.isoformat(),)
+        )
+        active_today = cursor.fetchone()[0]
+
+        cursor.execute(
+            "SELECT COUNT(*) FROM users WHERE substr(last_activity, 1, 10) >= ?",
+            (week_ago.isoformat(),)
+        )
+        active_week = cursor.fetchone()[0]
+
+        cursor.execute(
+            "SELECT COUNT(*) FROM users WHERE substr(last_activity, 1, 10) >= ?",
+            (month_ago.isoformat(),)
+        )
+        active_month = cursor.fetchone()[0]
 
     return {
         "total": total,
-        "today": today_count,
-        "week": week_count,
-        "month": month_count,
+        "new_today": new_today,
+        "new_week": new_week,
+        "new_month": new_month,
+        "active_today": active_today,
+        "active_week": active_week,
+        "active_month": active_month,
     }

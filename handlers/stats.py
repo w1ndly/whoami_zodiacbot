@@ -22,7 +22,12 @@ async def stats_command(message: Message):
     await message.answer(
         "📊 <b>Статистика бота</b>\n\n"
         f"👥 Всего пользователей: <b>{stats['total']}</b>\n\n"
-        f"🟢 Сегодня: <b>{stats['today']}</b>\n"
-        f"📅 За 7 дней: <b>{stats['week']}</b>\n"
-        f"🗓 За 30 дней: <b>{stats['month']}</b>"
+        "🟢 <b>Активность</b>\n"
+        f"Сегодня: <b>{stats['active_today']}</b>\n"
+        f"За 7 дней: <b>{stats['active_week']}</b>\n"
+        f"За 30 дней: <b>{stats['active_month']}</b>\n\n"
+        "🆕 <b>Новые пользователи</b>\n"
+        f"Сегодня: <b>{stats['new_today']}</b>\n"
+        f"За 7 дней: <b>{stats['new_week']}</b>\n"
+        f"За 30 дней: <b>{stats['new_month']}</b>"
     )
