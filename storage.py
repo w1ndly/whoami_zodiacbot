@@ -5,6 +5,7 @@ user_data пока хранится в памяти.
 Счетчики пользователей хранятся в SQLite.
 """
 
+from database import get_users_statistics as db_get_users_statistics
 from database import (
     get_used_checks,
     increment_used_checks,
@@ -42,3 +43,6 @@ def get_user_data(user_id: int) -> dict | None:
 
 def reset_user_checks(user_id: int):
     db_reset_user_checks(user_id)
+
+def get_users_statistics() -> dict:
+    return db_get_users_statistics()

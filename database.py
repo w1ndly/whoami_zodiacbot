@@ -232,3 +232,41 @@ if __name__ == "__main__":
     print_database_debug_info()
     init_db()
     print("База данных создана и готова к работе.")
+
+def get_users_statistics() -> dict:
+    from datetime import datetime, timedelta
+
+    today = datetime.now().date()
+    week_ago = today - timedelta(days=7)
+    month_ago = today - timedelta(days=30)
+
+    with sqlite3.connect(get_database_path()) as conn:
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT COUNT(*) FROM users")
+        total = cursor.fetchone()[0]
+
+        cursor.execute(
+            "SELECT COUNT(*) FROM users WHERE substr(created_at, 1, 10) = ?",
+            (today.isoformat(),)
+        )
+        today_count = cursor.fetchone()[0]
+
+        cursor.execute(
+            "SELECT COUNT(*) FROM users WHERE substr(created_at, 1, 10) >= ?",
+            (week_ago.isoformat(),)
+        )
+        week_count = cursor.fetchone()[0]
+
+        cursor.execute(
+            "SELECT COUNT(*) FROM users WHERE substr(created_at, 1, 10) >= ?",
+            (month_ago.isoformat(),)
+        )
+        month_count = cursor.fetchone()[0]
+
+    return {
+        "total": total,
+        "today": today_count,
+        "week": week_count,
+        "month": month_count,
+    }

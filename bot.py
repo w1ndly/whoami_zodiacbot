@@ -38,6 +38,7 @@ from handlers.help import router as help_router
 from handlers.profile import router as profile_router
 from handlers.clear import router as clear_router
 from handlers.start import router as start_router
+from handlers.stats import router as stats_router
 from handlers.callbacks import router as callbacks_router, configure_callbacks
 from handlers.birth import (
     handle_waiting_for_time,
@@ -47,6 +48,7 @@ from handlers.birth import (
 )
 from handlers.dev import router as dev_router
 
+
 dp = Dispatcher()
 dp.include_router(feedback_router)
 dp.include_router(help_router)
@@ -55,6 +57,7 @@ dp.include_router(clear_router)
 dp.include_router(start_router)
 dp.include_router(callbacks_router)
 dp.include_router(dev_router)
+dp.include_router(stats_router)
 
 load_dotenv()
 
