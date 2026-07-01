@@ -9,12 +9,30 @@ from storage import get_users_statistics
 
 router = Router()
 
-ADMIN_ID = int(os.getenv("ADMIN_ID", "0"))
+def get_admin_ids() -> set[int]:
+    raw_ids = os.getenv("ADMIN_IDS", "")
+
+    if not raw_ids:
+        old_admin_id = os.getenv("ADMIN_ID", "")
+        raw_ids = old_admin_id
+
+    admin_ids = set()
+
+    for raw_id in raw_ids.split(","):
+        raw_id = raw_id.strip()
+
+        if raw_id.isdigit():
+            admin_ids.add(int(raw_id))
+
+    return admin_ids
+
+
+ADMIN_IDS = get_admin_ids()
 
 
 @router.message(Command("stats"))
 async def stats_command(message: Message):
-    if message.from_user.id != ADMIN_ID:
+    if message.from_user.id not in ADMIN_IDS:
         return
 
     stats = get_users_statistics()
