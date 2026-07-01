@@ -240,7 +240,7 @@ def get_users_statistics() -> dict:
     week_ago = today - timedelta(days=7)
     month_ago = today - timedelta(days=30)
 
-    with sqlite3.connect(get_database_path()) as conn:
+    with get_connection() as conn:
         cursor = conn.cursor()
 
         cursor.execute("SELECT COUNT(*) FROM users")
