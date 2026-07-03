@@ -35,18 +35,20 @@ def can_make_check(user_id: int) -> bool:
     )
 
 
-def add_check(user_id: int) -> None:
+def add_check(user_id: int) -> str:
     profile = get_user_profile(user_id)
 
     if profile["remaining_checks"] > 0:
         add_user_check(user_id)
         add_check_event(user_id, "zodiac")
-        return
+        return "free"
 
     if profile["bonus_checks"] > 0:
         use_bonus_check(user_id)
         add_check_event(user_id, "zodiac")
-        return
+        return "bonus"
+
+    return "none"
 
 
 def get_remaining_checks(user_id: int) -> int:

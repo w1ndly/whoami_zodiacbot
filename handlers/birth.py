@@ -2,8 +2,10 @@ from datetime import datetime
 
 from aiogram.types import Message
 
-from storage import user_data
-
+from storage import (
+    user_data,
+    get_bonus_checks,
+)
 
 async def handle_waiting_for_time(
     message: Message,
@@ -172,10 +174,28 @@ async def handle_birth_date(
         return True
 
     sign = get_zodiac_sign(day, month)
-    add_check(user_id)
+
+    check_type = add_check(user_id)
+
+    if check_type == "free":
+        footer = (
+            "\n\n"
+            f"Осталось бесплатных проверок: "
+            f"<b>{get_remaining_checks(user_id)}</b>"
+        )
+
+    elif check_type == "bonus":
+        footer = (
+            "\n\n"
+            "🎁 <b>Использована бонусная проверка.</b>\n"
+            f"Осталось бонусных проверок: "
+            f"<b>{get_bonus_checks(user_id)}</b>"
+        )
+
+    else:
+        footer = ""
 
     await message.answer(
-        render_result_message(sign)
-        + f"\n\nОсталось проверок: <b>{get_remaining_checks(user_id)}</b>"
+        render_result_message(sign) + footer
     )
     return True
