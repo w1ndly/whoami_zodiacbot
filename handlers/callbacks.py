@@ -11,6 +11,8 @@ from limits import limit_text
 from services.payment_service import (
     render_top_up_text,
     top_up_checks_keyboard,
+    render_payment_method_text,
+    payment_method_keyboard,
     get_payment_pack,
     get_invoice_prices,
 )
@@ -57,9 +59,10 @@ async def handle_callback(callback: CallbackQuery):
         )
         return
 
-    if callback.data.startswith("pay_"):
-        payload = callback.data.replace("pay_", "")
-        pack = get_payment_pack(payload)
+    if callback.data.startswith("pay_checks_"):
+        pack_key = callback.data.replace("pay_", "")
+
+        pack = get_payment_pack(pack_key)
 
         if pack is None:
             await callback.message.answer(
@@ -68,13 +71,9 @@ async def handle_callback(callback: CallbackQuery):
             )
             return
 
-        await callback.message.answer_invoice(
-            title=pack["title"],
-            description=pack["description"],
-            payload=payload,
-            provider_token="",
-            currency="XTR",
-            prices=get_invoice_prices(payload),
+        await callback.message.answer(
+            render_payment_method_text(pack_key),
+            reply_markup=payment_method_keyboard(pack_key)
         )
         return
 

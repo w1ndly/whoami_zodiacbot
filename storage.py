@@ -17,6 +17,9 @@ from database import (
     add_bonus_checks as db_add_bonus_checks,
     use_bonus_check as db_use_bonus_check,
     save_payment as db_save_payment,
+    create_robokassa_order as db_create_robokassa_order,
+    get_robokassa_order as db_get_robokassa_order,
+    mark_robokassa_order_paid as db_mark_robokassa_order_paid,
 )
 
 user_data = {}
@@ -83,3 +86,24 @@ def save_payment(
         currency=currency,
         status=status,
     )
+
+def create_robokassa_order(
+    user_id: int,
+    pack_key: str,
+    checks: int,
+    amount: int,
+) -> int:
+    return db_create_robokassa_order(
+        user_id=user_id,
+        pack_key=pack_key,
+        checks=checks,
+        amount=amount,
+    )
+
+
+def get_robokassa_order(order_id: int) -> dict | None:
+    return db_get_robokassa_order(order_id)
+
+
+def mark_robokassa_order_paid(order_id: int) -> None:
+    db_mark_robokassa_order_paid(order_id)

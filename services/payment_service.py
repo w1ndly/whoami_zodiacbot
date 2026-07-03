@@ -4,6 +4,7 @@ from aiogram.types import (
     LabeledPrice,
 )
 
+from services.payment_methods import get_enabled_payment_methods
 
 PAYMENT_PACKS = {
     "checks_10": {
@@ -108,3 +109,44 @@ def get_invoice_prices(payload: str) -> list[LabeledPrice]:
             amount=pack["price"],
         )
     ]
+
+def payment_method_keyboard(pack_key: str) -> InlineKeyboardMarkup:
+    buttons = []
+
+    for method in get_enabled_payment_methods():
+        buttons.append(
+            [
+                InlineKeyboardButton(
+                    text=method.title,
+                    callback_data=f"pay_method_{method.code}_{pack_key}"
+                )
+            ]
+        )
+
+    buttons.append(
+        [
+            InlineKeyboardButton(
+                text="← Назад к пакетам",
+                callback_data="buy_checks"
+            )
+        ]
+    )
+
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+
+def render_payment_method_text(pack_key: str) -> str:
+    pack = get_payment_pack(pack_key)
+
+    if pack is None:
+        return (
+            "Не удалось найти выбранный пакет.\n\n"
+            "Попробуйте выбрать пакет еще раз."
+        )
+
+    return (
+        "💳 <b>Выберите способ оплаты</b>\n\n"
+        f"Пакет: <b>{pack['checks']} проверок</b>\n"
+        f"Стоимость: <b>{pack['price']}</b>\n\n"
+        "Выберите удобный способ:"
+    )

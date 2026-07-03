@@ -187,6 +187,23 @@ def init_db() -> None:
             """
         )
 
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS robokassa_orders (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                pack_key TEXT NOT NULL,
+                checks INTEGER NOT NULL,
+                amount INTEGER NOT NULL,
+                status TEXT NOT NULL DEFAULT 'created',
+                created_at TEXT NOT NULL,
+                paid_at TEXT
+            )
+            """
+        )
+
+        connection.commit()
+
 
 def get_used_checks(user_id: int) -> int:
     ensure_user_checks_period(user_id)
@@ -550,6 +567,99 @@ def save_payment(
                 status,
                 now,
             )
+        )
+
+        connection.commit()
+
+def create_robokassa_order(
+    user_id: int,
+    pack_key: str,
+    checks: int,
+    amount: int,
+) -> int:
+    now = datetime.utcnow().isoformat()
+
+    with get_connection() as connection:
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            INSERT INTO robokassa_orders (
+                user_id,
+                pack_key,
+                checks,
+                amount,
+                status,
+                created_at
+            )
+            VALUES (?, ?, ?, ?, 'created', ?)
+            """,
+            (
+                user_id,
+                pack_key,
+                checks,
+                amount,
+                now,
+            )
+        )
+
+        connection.commit()
+
+        return cursor.lastrowid
+
+
+def get_robokassa_order(order_id: int) -> dict | None:
+    with get_connection() as connection:
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            SELECT
+                id,
+                user_id,
+                pack_key,
+                checks,
+                amount,
+                status,
+                created_at,
+                paid_at
+            FROM robokassa_orders
+            WHERE id = ?
+            """,
+            (order_id,)
+        )
+
+        row = cursor.fetchone()
+
+    if row is None:
+        return None
+
+    return {
+        "id": row[0],
+        "user_id": row[1],
+        "pack_key": row[2],
+        "checks": row[3],
+        "amount": row[4],
+        "status": row[5],
+        "created_at": row[6],
+        "paid_at": row[7],
+    }
+
+
+def mark_robokassa_order_paid(order_id: int) -> None:
+    now = datetime.utcnow().isoformat()
+
+    with get_connection() as connection:
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            UPDATE robokassa_orders
+            SET status = 'paid',
+                paid_at = ?
+            WHERE id = ?
+            """,
+            (now, order_id)
         )
 
         connection.commit()
