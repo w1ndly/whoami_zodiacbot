@@ -77,6 +77,29 @@ async def handle_callback(callback: CallbackQuery):
         )
         return
 
+    if callback.data.startswith("pay_method_stars_"):
+        payload = callback.data.replace("pay_method_stars_", "")
+
+        pack = get_payment_pack(payload)
+
+        if pack is None:
+            await callback.message.answer(
+                "Не удалось найти выбранный пакет.\n\n"
+                "Пожалуйста, попробуйте еще раз."
+            )
+            return
+
+        await callback.message.answer_invoice(
+            title=pack["title"],
+            description=pack["description"],
+            payload=payload,
+            provider_token="",
+            currency="XTR",
+            prices=get_invoice_prices(payload),
+        )
+        return
+
+
     if callback.data == "birth_time_yes":
         data["state"] = "waiting_for_time"
         user_data[user_id] = data
