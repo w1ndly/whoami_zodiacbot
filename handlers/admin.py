@@ -19,4 +19,5 @@ async def admin_command(message: Message):
         "/stats — статистика пользователей\n"
         "/admin — список админских команд\n"
         "/add_bonus 10 — добавить бонусные проверки\n"
+        "/add_bonus user_id 10 — начислить бонусные проверки\n"
     )

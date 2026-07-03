@@ -185,6 +185,8 @@ async def handle_birth_date(
 
     check_type = add_check(user_id)
 
+    reply_markup = None
+
     if check_type == "free":
         footer = (
             "\n\n"
@@ -193,17 +195,29 @@ async def handle_birth_date(
         )
 
     elif check_type == "bonus":
+        bonus_left = get_bonus_checks(user_id)
+
         footer = (
             "\n\n"
             "🎁 <b>Использована бонусная проверка.</b>\n"
             f"Осталось бонусных проверок: "
-            f"<b>{get_bonus_checks(user_id)}</b>"
+            f"<b>{bonus_left}</b>"
         )
+
+        reply_markup = None
+
+        if bonus_left <= 3:
+            footer += (
+                "\n\n"
+                "💡 Проверки можно пополнить в любой момент."
+            )
+            reply_markup = buy_checks_keyboard()
 
     else:
         footer = ""
 
     await message.answer(
-        render_result_message(sign) + footer
+        render_result_message(sign) + footer,
+        reply_markup=reply_markup
     )
     return True
