@@ -8,7 +8,11 @@ from user_profile import (
     get_remaining_checks,
 )
 from limits import limit_text
-from services.payment_service import render_buy_checks_text
+from services.payment_service import (
+    CHECKS_PACK_PAYLOAD,
+    render_buy_checks_text,
+    get_checks_invoice_prices,
+)
 
 router = Router()
 
@@ -47,6 +51,15 @@ async def handle_callback(callback: CallbackQuery):
 
     if callback.data == "buy_checks":
         await callback.message.answer(render_buy_checks_text())
+
+        await callback.message.answer_invoice(
+            title="🔮 Дополнительные проверки",
+            description="Пакет из 10 дополнительных проверок знака Зодиака.",
+            payload=CHECKS_PACK_PAYLOAD,
+            provider_token="",
+            currency="XTR",
+            prices=get_checks_invoice_prices(),
+        )
         return
 
     if callback.data == "birth_time_yes":

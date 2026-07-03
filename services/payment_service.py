@@ -1,5 +1,9 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-
+from aiogram.types import (
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+    LabeledPrice,
+)
+from aiogram.types import LabeledPrice
 
 def buy_checks_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
@@ -33,3 +37,11 @@ def render_buy_checks_text() -> str:
         f"Цена: <b>{CHECKS_PACK_PRICE_STARS} Stars</b>\n\n"
         "После оплаты проверки сразу добавятся в ваш профиль."
     )
+
+def get_checks_invoice_prices() -> list[LabeledPrice]:
+    return [
+        LabeledPrice(
+            label=f"{CHECKS_PACK_AMOUNT} дополнительных проверок",
+            amount=CHECKS_PACK_PRICE_STARS,
+        )
+    ]
