@@ -120,11 +120,6 @@ def get_next_free_reset_text(registration_date: str | None) -> str:
 def render_profile_text(user_id: int) -> str:
     profile = get_user_profile(user_id)
 
-    status_title = get_user_status_title(
-        checks_count=profile["used_checks"],
-        is_pro=False,
-    )
-
     telegram_user = profile.get("telegram_user")
 
     username = "—"
@@ -145,10 +140,15 @@ def render_profile_text(user_id: int) -> str:
 
     next_reset_text = get_next_free_reset_text(registration_date)
 
+    status_title = get_user_status_title(
+        checks_count=profile["used_checks"],
+        is_pro=False,
+    )
+
     return (
         "👤 <b>Ваш профиль</b>\n\n"
         f"🆔 ID: <code>{profile['user_id']}</code>\n"
-        f"🟢 Статус: <b>{get_user_status(user_id)}</b>\n\n"
+        f"🟢 Статус: <b>{status_title}</b>\n\n"
         f"💫 Доступно проверок: <b>{total_checks}</b>\n"
         f"   • Бесплатных: <b>{profile['remaining_checks']} из {profile['free_limit']}</b>\n"
         f"   • Дополнительных: <b>{profile['bonus_checks']}</b>\n\n"
