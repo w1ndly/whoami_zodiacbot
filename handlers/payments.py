@@ -6,7 +6,7 @@ from storage import (
     add_bonus_checks,
     save_payment,
 )
-
+from user_profile import get_user_profile
 
 router = Router()
 
@@ -35,6 +35,13 @@ async def successful_payment(message: Message):
 
     add_bonus_checks(message.from_user.id, pack["checks"])
 
+    profile = get_user_profile(message.from_user.id)
+
+    total_checks = (
+        profile["remaining_checks"]
+        + profile["bonus_checks"]
+    )
+
     save_payment(
         user_id=message.from_user.id,
         telegram_payment_charge_id=payment.telegram_payment_charge_id,
@@ -46,8 +53,8 @@ async def successful_payment(message: Message):
 
     await message.answer(
         "🎉 <b>Проверки успешно пополнены!</b>\n\n"
-        "На ваш аккаунт начислено:\n\n"
-        f"✨ <b>{pack['checks']} дополнительных проверок</b>\n\n"
-        "Спасибо за поддержку проекта ❤️\n\n"
-        "Приятного пользования!"
+        f"✨ Начислено: <b>{pack['checks']} проверок</b>\n\n"
+        f"📦 Сейчас доступно: <b>{total_checks} проверок</b>\n\n"
+        "🔮 Введите новую дату рождения — "
+        "и я сразу определю знак."
     )
