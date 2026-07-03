@@ -26,7 +26,7 @@ def render_no_checks_text() -> str:
     )
 
 CHECKS_PACK_AMOUNT = 10
-CHECKS_PACK_PRICE_STARS = 100
+CHECKS_PACK_PRICE_STARS = 1
 CHECKS_PACK_PAYLOAD = "buy_10_checks"
 
 
