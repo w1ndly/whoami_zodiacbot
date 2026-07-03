@@ -47,6 +47,7 @@ from handlers.birth import (
     handle_birth_date,
 )
 from handlers.dev import router as dev_router
+from handlers.admin import router as admin_router
 
 
 dp = Dispatcher()
@@ -58,6 +59,7 @@ dp.include_router(start_router)
 dp.include_router(callbacks_router)
 dp.include_router(dev_router)
 dp.include_router(stats_router)
+dp.include_router(admin_router)
 
 load_dotenv()
 
