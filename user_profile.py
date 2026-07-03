@@ -147,12 +147,12 @@ def render_profile_text(user_id: int) -> str:
 
     return (
         "👤 <b>Ваш профиль</b>\n\n"
-        f"🆔 ID: <code>{profile['user_id']}</code>\n"
+        f"🆔 ID: <code>{profile['user_id']}</code>\n\n"
         f"⭐ Статус: <b>{status_title}</b>\n\n"
         f"💫 Доступно проверок: <b>{total_checks}</b>\n"
         f"   • Бесплатных: <b>{profile['remaining_checks']} из {profile['free_limit']}</b>\n"
         f"   • Дополнительных: <b>{profile['bonus_checks']}</b>\n\n"
-        f"🔄 Бесплатные проверки обновятся: <b>{next_reset_text}</b>\n\n"
+        f"🔄 Бесплатные проверки обновятся:\n <b>{next_reset_text}</b>\n\n"
         f"👁 Выполнено бесплатных проверок: <b>{profile['used_checks']}</b>\n"
         f"📅 Первый запуск: <b>{registration_date_text}</b>\n"
         f"🔗 Telegram: <b>{username}</b>\n\n"
