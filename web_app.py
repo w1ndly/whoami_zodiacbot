@@ -4,7 +4,13 @@ from fastapi.responses import PlainTextResponse
 from services.robokassa_service import check_result_signature
 from storage import get_robokassa_order
 
+from database import DB_NAME
+
 app = FastAPI()
+
+
+import os
+from database import DB_NAME
 
 
 @app.get("/health")
@@ -12,6 +18,9 @@ async def health():
     return {
         "status": "ok",
         "service": "zodiac-bot-web",
+        "db": DB_NAME,
+        "cwd": os.getcwd(),
+        "exists": os.path.exists(DB_NAME),
     }
 
 
