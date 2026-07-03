@@ -248,6 +248,7 @@ def get_users_statistics() -> dict:
 
         cursor.execute("PRAGMA table_info(user_checks)")
         print(cursor.fetchall())
+        total_checks = 0
 
         cursor.execute(
             "SELECT COUNT(*) FROM users WHERE substr(created_at, 1, 10) = ?",
