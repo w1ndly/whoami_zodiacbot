@@ -49,7 +49,8 @@ async def orders_command(message: Message):
             f"✨ Проверок: <b>{order['checks']}</b>\n"
             f"💰 Сумма: <b>{order['amount']} ₽</b>\n"
             f"📌 Статус: <b>{order['status']}</b>\n"
-            f"🕒 Создан: <code>{order['created_at']}</code>\n\n"
+            f"🕒 Создан: <code>{order['created_at']}</code>\n"
+            f"✅ Оплачен: <code>{order.get('paid_at') or '—'}</code>\n\n"
         )
 
     await message.answer(text)

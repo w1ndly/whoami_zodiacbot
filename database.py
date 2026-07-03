@@ -671,43 +671,6 @@ def get_last_robokassa_orders(limit: int = 10) -> list[dict]:
 
         cursor.execute(
             """
-            SELECT
-                id,
-                user_id,
-                pack_key,
-                checks,
-                amount,
-                status,
-                created_at
-            FROM robokassa_orders
-            ORDER BY id DESC
-            LIMIT ?
-            """,
-            (limit,),
-        )
-
-        rows = cursor.fetchall()
-
-    return [
-        {
-            "id": row[0],
-            "user_id": row[1],
-            "pack_key": row[2],
-            "checks": row[3],
-            "amount": row[4],
-            "status": row[5],
-            "created_at": row[6],
-        }
-        for row in rows
-    ]
-
-
-def get_last_robokassa_orders(limit: int = 10) -> list[dict]:
-    with get_connection() as connection:
-        cursor = connection.cursor()
-
-        cursor.execute(
-            """
             SELECT id, user_id, pack_key, checks, amount, status, created_at, paid_at
             FROM robokassa_orders
             ORDER BY id DESC
