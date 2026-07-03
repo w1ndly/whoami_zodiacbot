@@ -53,8 +53,11 @@ def add_check(user_id: int) -> str:
 
 def get_remaining_checks(user_id: int) -> int:
     profile = get_user_profile(user_id)
-    return profile["remaining_checks"]
 
+    return (
+        profile["remaining_checks"]
+        + profile["bonus_checks"]
+    )
 
 def render_profile_text(user_id: int) -> str:
     profile = get_user_profile(user_id)
