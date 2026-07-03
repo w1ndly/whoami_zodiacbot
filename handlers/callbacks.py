@@ -1,5 +1,9 @@
 from aiogram import Router
-from aiogram.types import CallbackQuery
+from aiogram.types import (
+    CallbackQuery,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+)
 
 from storage import user_data
 from user_profile import (
@@ -16,6 +20,7 @@ from services.payment_service import (
     get_payment_pack,
     get_invoice_prices,
 )
+from services.payment_gateway import create_robokassa_payment
 
 router = Router()
 
@@ -96,6 +101,57 @@ async def handle_callback(callback: CallbackQuery):
             provider_token="",
             currency="XTR",
             prices=get_invoice_prices(payload),
+        )
+        return
+
+    if callback.data.startswith("pay_method_robokassa_"):
+        pack_key = callback.data.replace("pay_method_robokassa_", "")
+
+        pack = get_payment_pack(pack_key)
+
+        if pack is None:
+            await callback.message.answer(
+                "Не удалось найти выбранный пакет.\n\n"
+                "Пожалуйста, попробуйте еще раз."
+            )
+            return
+
+        payment_url = create_robokassa_payment(
+            user_id=callback.from_user.id,
+            pack_key=pack_key,
+            checks=pack["checks"],
+            amount=pack["rub_price"],
+            description=f"Пополнение проверок: {pack['checks']}",
+        )
+
+        await callback.message.answer(
+            "💳 <b>Оплата банковской картой</b>\n\n"
+            f"Пакет: <b>{pack['checks']} проверок</b>\n"
+            f"Стоимость: <b>{pack['rub_price']} ₽</b>\n\n"
+            "После оплаты проверки будут начислены автоматически.\n\n"
+            "Нажмите кнопку ниже, чтобы перейти к оплате:",
+            reply_markup=InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [
+                        InlineKeyboardButton(
+                            text="💳 Перейти к оплате",
+                            url=payment_url
+                        )
+                    ],
+                    [
+                        InlineKeyboardButton(
+                            text="← Выбрать другой способ",
+                            callback_data=f"pay_checks_{pack_key}"
+                        )
+                    ],
+                    [
+                        InlineKeyboardButton(
+                            text="← Назад к пакетам",
+                            callback_data="buy_checks"
+                        )
+                    ],
+                ]
+            )
         )
         return
 
