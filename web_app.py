@@ -1,8 +1,15 @@
+from decimal import Decimal
+
 from fastapi import FastAPI, Form
 from fastapi.responses import PlainTextResponse
 
 from services.robokassa_service import check_result_signature
-from storage import get_robokassa_order
+from storage import (
+    add_bonus_checks,
+    get_robokassa_order,
+    mark_robokassa_order_paid,
+    save_payment,
+)
 
 from database import DB_NAME
 
@@ -40,8 +47,6 @@ async def robokassa_result(
         shp_user_id=Shp_user_id,
     )
 
-    order = get_robokassa_order(int(InvId))
-
     if not is_valid:
         return PlainTextResponse(
             "bad sign",
@@ -58,5 +63,39 @@ async def robokassa_result(
 
     if order["status"] == "paid":
         return f"OK{InvId}"
+
+    if order["pack_key"] != Shp_pack:
+        return PlainTextResponse(
+            "bad pack",
+            status_code=400,
+        )
+
+    if int(order["user_id"]) != int(Shp_user_id):
+        return PlainTextResponse(
+            "bad user",
+            status_code=400,
+        )
+
+    if Decimal(str(order["amount"])) != Decimal(str(OutSum)):
+        return PlainTextResponse(
+            "bad amount",
+            status_code=400,
+        )
+
+    add_bonus_checks(
+        user_id=order["user_id"],
+        amount=order["checks"],
+    )
+
+    save_payment(
+        user_id=order["user_id"],
+        telegram_payment_charge_id=f"robokassa_{InvId}",
+        payload=order["pack_key"],
+        amount=order["amount"],
+        currency="RUB",
+        status="paid",
+    )
+
+    mark_robokassa_order_paid(int(InvId))
 
     return f"OK{InvId}"
