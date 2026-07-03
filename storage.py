@@ -20,6 +20,7 @@ from database import (
     create_robokassa_order as db_create_robokassa_order,
     get_robokassa_order as db_get_robokassa_order,
     mark_robokassa_order_paid as db_mark_robokassa_order_paid,
+    get_last_robokassa_orders as db_get_last_robokassa_orders,
 )
 
 user_data = {}
@@ -107,3 +108,6 @@ def get_robokassa_order(order_id: int) -> dict | None:
 
 def mark_robokassa_order_paid(order_id: int) -> None:
     db_mark_robokassa_order_paid(order_id)
+
+def get_last_robokassa_orders(limit: int = 10) -> list[dict]:
+    return db_get_last_robokassa_orders(limit)
