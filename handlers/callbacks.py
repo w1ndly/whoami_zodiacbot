@@ -9,9 +9,10 @@ from user_profile import (
 )
 from limits import limit_text
 from services.payment_service import (
-    CHECKS_PACK_PAYLOAD,
-    render_buy_checks_text,
-    get_checks_invoice_prices,
+    render_top_up_text,
+    top_up_checks_keyboard,
+    get_payment_pack,
+    get_invoice_prices,
 )
 
 router = Router()
@@ -50,15 +51,30 @@ async def handle_callback(callback: CallbackQuery):
     await callback.answer()
 
     if callback.data == "buy_checks":
-        await callback.message.answer(render_buy_checks_text())
+        await callback.message.answer(
+            render_top_up_text(),
+            reply_markup=top_up_checks_keyboard()
+        )
+        return
+
+    if callback.data.startswith("pay_"):
+        payload = callback.data.replace("pay_", "")
+        pack = get_payment_pack(payload)
+
+        if pack is None:
+            await callback.message.answer(
+                "Не удалось найти выбранный пакет.\n\n"
+                "Пожалуйста, попробуйте еще раз."
+            )
+            return
 
         await callback.message.answer_invoice(
-            title="🔮 Дополнительные проверки",
-            description="Пакет из 10 дополнительных проверок знака Зодиака.",
-            payload=CHECKS_PACK_PAYLOAD,
+            title=pack["title"],
+            description=pack["description"],
+            payload=payload,
             provider_token="",
             currency="XTR",
-            prices=get_checks_invoice_prices(),
+            prices=get_invoice_prices(payload),
         )
         return
 

@@ -3,14 +3,36 @@ from aiogram.types import (
     InlineKeyboardButton,
     LabeledPrice,
 )
-from aiogram.types import LabeledPrice
+
+
+PAYMENT_PACKS = {
+    "checks_10": {
+        "title": "⭐ Для знакомства",
+        "checks": 10,
+        "price": 100,
+        "description": "10 дополнительных проверок знака Зодиака.",
+    },
+    "checks_25": {
+        "title": "🔥 Самый популярный",
+        "checks": 25,
+        "price": 220,
+        "description": "25 дополнительных проверок знака Зодиака.",
+    },
+    "checks_50": {
+        "title": "💎 Лучшее предложение",
+        "checks": 50,
+        "price": 390,
+        "description": "50 дополнительных проверок знака Зодиака.",
+    },
+}
+
 
 def buy_checks_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="🔮 Купить проверки",
+                    text="⭐ Пополнить проверки",
                     callback_data="buy_checks"
                 )
             ]
@@ -18,30 +40,71 @@ def buy_checks_keyboard() -> InlineKeyboardMarkup:
     )
 
 
+def top_up_checks_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="⭐ Для знакомства • 100 ⭐",
+                    callback_data="pay_checks_10"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🔥 Самый популярный • 220 ⭐",
+                    callback_data="pay_checks_25"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="💎 Лучшее предложение • 390 ⭐",
+                    callback_data="pay_checks_50"
+                )
+            ],
+        ]
+    )
+
+
 def render_no_checks_text() -> str:
     return (
-        "Бесплатные проверки закончились.\n"
-        "Бонусных проверок тоже нет.\n\n"
-        "Можно купить дополнительные проверки и продолжить."
+        "🔮 <b>Проверки закончились</b>\n\n"
+        "Вы использовали все бесплатные и бонусные проверки.\n\n"
+        "✨ Пополните запас проверок и продолжайте пользоваться ботом."
     )
 
-CHECKS_PACK_AMOUNT = 10
-CHECKS_PACK_PRICE_STARS = 1
-CHECKS_PACK_PAYLOAD = "buy_10_checks"
 
-
-def render_buy_checks_text() -> str:
+def render_top_up_text() -> str:
     return (
-        "🔮 <b>Дополнительные проверки</b>\n\n"
-        f"Пакет: <b>{CHECKS_PACK_AMOUNT} проверок</b>\n"
-        f"Цена: <b>{CHECKS_PACK_PRICE_STARS} Stars</b>\n\n"
-        "После оплаты проверки сразу добавятся в ваш профиль."
+        "✨ <b>Пополнение проверок</b>\n\n"
+        "Выберите подходящий пакет.\n\n"
+        "Все приобретенные проверки:\n\n"
+        "• не имеют срока действия;\n"
+        "• сохраняются за вашим аккаунтом;\n"
+        "• автоматически используются после бесплатных.\n\n"
+        "⭐ <b>Для знакомства</b>\n"
+        "10 проверок — 100 ⭐\n\n"
+        "🔥 <b>Самый популярный</b>\n"
+        "25 проверок — 220 ⭐\n"
+        "Выгоднее на 12%\n\n"
+        "💎 <b>Лучшее предложение</b>\n"
+        "50 проверок — 390 ⭐\n"
+        "Выгоднее на 22%"
     )
 
-def get_checks_invoice_prices() -> list[LabeledPrice]:
+
+def get_payment_pack(payload: str) -> dict | None:
+    return PAYMENT_PACKS.get(payload)
+
+
+def get_invoice_prices(payload: str) -> list[LabeledPrice]:
+    pack = get_payment_pack(payload)
+
+    if pack is None:
+        return []
+
     return [
         LabeledPrice(
-            label=f"{CHECKS_PACK_AMOUNT} дополнительных проверок",
-            amount=CHECKS_PACK_PRICE_STARS,
+            label=f"{pack['checks']} дополнительных проверок",
+            amount=pack["price"],
         )
     ]
