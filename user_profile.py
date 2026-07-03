@@ -6,6 +6,7 @@ from storage import (
     reset_user_checks,
     add_check_event,
     get_bonus_checks,
+    use_bonus_check,
 )
 
 def get_user_profile(user_id: int) -> dict:
@@ -27,12 +28,25 @@ def get_user_profile(user_id: int) -> dict:
 
 def can_make_check(user_id: int) -> bool:
     profile = get_user_profile(user_id)
-    return profile["remaining_checks"] > 0
+
+    return (
+        profile["remaining_checks"] > 0
+        or profile["bonus_checks"] > 0
+    )
 
 
 def add_check(user_id: int) -> None:
-    add_user_check(user_id)
-    add_check_event(user_id, "zodiac")
+    profile = get_user_profile(user_id)
+
+    if profile["remaining_checks"] > 0:
+        add_user_check(user_id)
+        add_check_event(user_id, "zodiac")
+        return
+
+    if profile["bonus_checks"] > 0:
+        use_bonus_check(user_id)
+        add_check_event(user_id, "zodiac")
+        return
 
 
 def get_remaining_checks(user_id: int) -> int:
