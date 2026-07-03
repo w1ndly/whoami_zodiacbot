@@ -246,6 +246,9 @@ def get_users_statistics() -> dict:
         cursor.execute("SELECT COUNT(*) FROM users")
         total = cursor.fetchone()[0]
 
+        cursor.execute("SELECT COALESCE(SUM(checks_count), 0) FROM user_checks")
+        total_checks = cursor.fetchone()[0]
+
         cursor.execute(
             "SELECT COUNT(*) FROM users WHERE substr(created_at, 1, 10) = ?",
             (today.isoformat(),)
@@ -284,6 +287,7 @@ def get_users_statistics() -> dict:
 
     return {
         "total": total,
+        "total_checks": total_checks,
         "new_today": new_today,
         "new_week": new_week,
         "new_month": new_month,

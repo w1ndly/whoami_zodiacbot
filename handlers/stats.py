@@ -18,6 +18,7 @@ async def stats_command(message: Message):
     await message.answer(
         "📊 <b>Статистика бота</b>\n\n"
         f"👥 Всего пользователей: <b>{stats['total']}</b>\n\n"
+        f"🔮 Всего проверок: <b>{stats['total_checks']}</b>\n\n"
         "🟢 <b>Активность</b>\n"
         f"Сегодня: <b>{stats['active_today']}</b>\n"
         f"За 7 дней: <b>{stats['active_week']}</b>\n"
