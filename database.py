@@ -246,8 +246,8 @@ def get_users_statistics() -> dict:
         cursor.execute("SELECT COUNT(*) FROM users")
         total = cursor.fetchone()[0]
 
-        cursor.execute("SELECT COALESCE(SUM(checks_count), 0) FROM user_checks")
-        total_checks = cursor.fetchone()[0]
+        cursor.execute("PRAGMA table_info(user_checks)")
+        print(cursor.fetchall())
 
         cursor.execute(
             "SELECT COUNT(*) FROM users WHERE substr(created_at, 1, 10) = ?",
