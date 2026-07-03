@@ -8,6 +8,7 @@ from user_profile import (
     get_remaining_checks,
 )
 from limits import limit_text
+from services.payment_service import render_buy_checks_text
 
 router = Router()
 
@@ -43,6 +44,10 @@ async def handle_callback(callback: CallbackQuery):
     data = user_data.get(user_id, {})
 
     await callback.answer()
+
+    if callback.data == "buy_checks":
+        await callback.message.answer(render_buy_checks_text())
+        return
 
     if callback.data == "birth_time_yes":
         data["state"] = "waiting_for_time"
