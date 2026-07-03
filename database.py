@@ -1,6 +1,7 @@
 import os
 import sqlite3
-from datetime import datetime
+from datetime import datetime, date
+from calendar import monthrange
 
 volume_path = os.getenv("RAILWAY_VOLUME_MOUNT_PATH")
 
@@ -31,6 +32,90 @@ def get_connection():
     return sqlite3.connect(DB_NAME)
 
 
+def add_one_month(source_date: date) -> date:
+    month = source_date.month + 1
+    year = source_date.year
+
+    if month > 12:
+        month = 1
+        year += 1
+
+    last_day = monthrange(year, month)[1]
+    day = min(source_date.day, last_day)
+
+    return date(year, month, day)
+
+
+def get_current_free_period_start(user_id: int) -> str:
+    today = date.today()
+
+    with get_connection() as connection:
+        cursor = connection.cursor()
+
+        cursor.execute(
+            "SELECT created_at FROM users WHERE user_id = ?",
+            (user_id,)
+        )
+
+        row = cursor.fetchone()
+
+    if row is None or row[0] is None:
+        return today.isoformat()
+
+    period_start = datetime.fromisoformat(row[0]).date()
+
+    while add_one_month(period_start) <= today:
+        period_start = add_one_month(period_start)
+
+    return period_start.isoformat()
+
+
+def ensure_user_checks_period(user_id: int) -> None:
+    current_period_start = get_current_free_period_start(user_id)
+
+    with get_connection() as connection:
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            SELECT last_reset_at
+            FROM user_checks
+            WHERE user_id = ?
+            """,
+            (user_id,)
+        )
+
+        row = cursor.fetchone()
+
+        if row is None:
+            return
+
+        last_reset_at = row[0]
+
+        if last_reset_at is None:
+            cursor.execute(
+                """
+                UPDATE user_checks
+                SET last_reset_at = ?
+                WHERE user_id = ?
+                """,
+                (current_period_start, user_id)
+            )
+
+        elif last_reset_at < current_period_start:
+            cursor.execute(
+                """
+                UPDATE user_checks
+                SET used_checks = 0,
+                    last_reset_at = ?
+                WHERE user_id = ?
+                """,
+                (current_period_start, user_id)
+            )
+
+        connection.commit()
+
+
 def init_db() -> None:
     with get_connection() as connection:
         cursor = connection.cursor()
@@ -43,6 +128,14 @@ def init_db() -> None:
             )
             """
         )
+
+        cursor.execute("PRAGMA table_info(user_checks)")
+        columns = [column[1] for column in cursor.fetchall()]
+
+        if "last_reset_at" not in columns:
+            cursor.execute(
+                "ALTER TABLE user_checks ADD COLUMN last_reset_at TEXT"
+            )
 
         cursor.execute(
             """
@@ -96,6 +189,8 @@ def init_db() -> None:
 
 
 def get_used_checks(user_id: int) -> int:
+    ensure_user_checks_period(user_id)
+    
     with get_connection() as connection:
         cursor = connection.cursor()
 
@@ -113,17 +208,20 @@ def get_used_checks(user_id: int) -> int:
 
 
 def increment_used_checks(user_id: int) -> None:
+    ensure_user_checks_period(user_id)
+    current_period_start = get_current_free_period_start(user_id)
+
     with get_connection() as connection:
         cursor = connection.cursor()
 
         cursor.execute(
             """
-            INSERT INTO user_checks(user_id, used_checks)
-            VALUES(?, 1)
+            INSERT INTO user_checks(user_id, used_checks, last_reset_at)
+            VALUES(?, 1, ?)
             ON CONFLICT(user_id)
             DO UPDATE SET used_checks = used_checks + 1
             """,
-            (user_id,)
+            (user_id, current_period_start)
         )
 
         connection.commit()
