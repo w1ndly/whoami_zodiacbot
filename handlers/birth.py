@@ -2,6 +2,11 @@ from datetime import datetime
 
 from aiogram.types import Message
 
+from services.payment_service import (
+    buy_checks_keyboard,
+    render_no_checks_text,
+)
+
 from storage import (
     user_data,
     get_bonus_checks,
@@ -170,7 +175,10 @@ async def handle_birth_date(
         return True
 
     if not can_make_check(user_id):
-        await message.answer(limit_text())
+        await message.answer(
+            render_no_checks_text(),
+            reply_markup=buy_checks_keyboard()
+        )
         return True
 
     sign = get_zodiac_sign(day, month)
