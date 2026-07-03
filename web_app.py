@@ -31,6 +31,22 @@ async def health():
     }
 
 
+@app.api_route("/robokassa/success", methods=["GET", "POST"], response_class=PlainTextResponse)
+async def robokassa_success():
+    return (
+        "Оплата прошла успешно.\n\n"
+        "Проверки будут начислены автоматически.\n"
+        "Вернитесь в Telegram-бота и откройте /profile."
+    )
+
+
+@app.api_route("/robokassa/fail", methods=["GET", "POST"], response_class=PlainTextResponse)
+async def robokassa_fail():
+    return (
+        "Оплата не была завершена.\n\n"
+        "Вернитесь в Telegram-бота и попробуйте выбрать пакет еще раз."
+    )
+
 @app.post("/robokassa/result", response_class=PlainTextResponse)
 async def robokassa_result(
     OutSum: str = Form(...),
