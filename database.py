@@ -309,24 +309,3 @@ def add_check_event(user_id: int, check_type: str) -> None:
         )
 
         connection.commit()
-
-    with get_connection() as connection:
-        cursor = connection.cursor()
-
-        cursor.execute(
-            """
-            INSERT INTO check_events (
-                user_id,
-                check_type,
-                created_at
-            )
-            VALUES (?, ?, ?)
-            """,
-            (
-                user_id,
-                check_type,
-                now,
-            )
-        )
-
-        connection.commit()
