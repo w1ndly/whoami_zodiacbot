@@ -24,5 +24,9 @@ async def stats_command(message: Message):
         f"Всего: <b>{stats['total_checks']}</b>\n"
         f"Сегодня: <b>{stats['checks_today']}</b>\n"
         f"За 7 дней: <b>{stats['checks_week']}</b>\n"
-        f"За 30 дней: <b>{stats['checks_month']}</b>"
+        f"За 30 дней: <b>{stats['checks_month']}</b>\n\n"
+        "💰 <b>Продажи</b>\n"
+        f"Получено Stars: <b>{stats['stars_total']}</b> ⭐\n"
+        f"Покупок: <b>{stats['payments_count']}</b>\n"
+        f"Средний чек: <b>{stats['average_payment']}</b> ⭐"
     )

@@ -242,6 +242,25 @@ def get_users_statistics() -> dict:
         total_checks = cursor.fetchone()[0]
 
         cursor.execute(
+            """
+            SELECT
+                COUNT(*),
+                COALESCE(SUM(amount), 0)
+            FROM payments
+            WHERE status = 'paid'
+            """
+        )
+        payments_row = cursor.fetchone()
+
+        payments_count = payments_row[0]
+        stars_total = payments_row[1]
+
+        if payments_count > 0:
+            average_payment = round(stars_total / payments_count)
+        else:
+            average_payment = 0
+
+        cursor.execute(
             "SELECT COUNT(*) FROM check_events WHERE substr(created_at, 1, 10) = ?",
             (today.isoformat(),)
         )
@@ -301,13 +320,15 @@ def get_users_statistics() -> dict:
         "checks_today": checks_today,
         "checks_week": checks_week,
         "checks_month": checks_month,
+        "payments_count": payments_count,
+        "stars_total": stars_total,
+        "average_payment": average_payment,
         "new_today": new_today,
         "new_week": new_week,
         "new_month": new_month,
         "active_today": active_today,
         "active_week": active_week,
         "active_month": active_month,
-
     }
 
 def add_check_event(user_id: int, check_type: str) -> None:
