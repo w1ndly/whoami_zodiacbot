@@ -4,6 +4,7 @@ from storage import (
     add_user_check,
     get_user_data,
     reset_user_checks,
+    add_check_event,
 )
 
 def get_user_profile(user_id: int) -> dict:
@@ -28,6 +29,7 @@ def can_make_check(user_id: int) -> bool:
 
 def add_check(user_id: int) -> None:
     add_user_check(user_id)
+    add_check_event(user_id, "zodiac")
 
 
 def get_remaining_checks(user_id: int) -> int:

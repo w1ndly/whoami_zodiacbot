@@ -12,6 +12,7 @@ from database import (
     register_user,
     get_user,
     reset_user_checks as db_reset_user_checks,
+    add_check_event as db_add_check_event,
 )
 
 user_data = {}
@@ -46,3 +47,6 @@ def reset_user_checks(user_id: int):
 
 def get_users_statistics() -> dict:
     return db_get_users_statistics()
+
+def add_check_event(user_id: int, check_type: str) -> None:
+    db_add_check_event(user_id, check_type)

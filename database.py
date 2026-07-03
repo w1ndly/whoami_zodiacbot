@@ -26,6 +26,7 @@ def print_database_debug_info() -> None:
 
     print("======================")
 
+
 def get_connection():
     return sqlite3.connect(DB_NAME)
 
@@ -52,6 +53,17 @@ def init_db() -> None:
                 language_code TEXT,
                 created_at TEXT NOT NULL,
                 last_activity TEXT NOT NULL
+            )
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS check_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                check_type TEXT NOT NULL,
+                created_at TEXT NOT NULL
             )
             """
         )
@@ -202,10 +214,26 @@ def get_users_statistics() -> dict:
         cursor.execute("SELECT COUNT(*) FROM users")
         total = cursor.fetchone()[0]
 
-        cursor.execute(
-            "SELECT COALESCE(SUM(used_checks), 0) FROM user_checks"
-        )
+        cursor.execute("SELECT COUNT(*) FROM check_events")
         total_checks = cursor.fetchone()[0]
+
+        cursor.execute(
+            "SELECT COUNT(*) FROM check_events WHERE substr(created_at, 1, 10) = ?",
+            (today.isoformat(),)
+        )
+        checks_today = cursor.fetchone()[0]
+
+        cursor.execute(
+            "SELECT COUNT(*) FROM check_events WHERE substr(created_at, 1, 10) >= ?",
+            (week_ago.isoformat(),)
+        )
+        checks_week = cursor.fetchone()[0]
+
+        cursor.execute(
+            "SELECT COUNT(*) FROM check_events WHERE substr(created_at, 1, 10) >= ?",
+            (month_ago.isoformat(),)
+        )
+        checks_month = cursor.fetchone()[0]
 
         cursor.execute(
             "SELECT COUNT(*) FROM users WHERE substr(created_at, 1, 10) = ?",
@@ -246,6 +274,9 @@ def get_users_statistics() -> dict:
     return {
         "total": total,
         "total_checks": total_checks,
+        "checks_today": checks_today,
+        "checks_week": checks_week,
+        "checks_month": checks_month,
         "new_today": new_today,
         "new_week": new_week,
         "new_month": new_month,
@@ -254,3 +285,27 @@ def get_users_statistics() -> dict:
         "active_month": active_month,
 
     }
+
+    def add_check_event(user_id: int, check_type: str) -> None:
+    now = datetime.utcnow().isoformat()
+
+    with get_connection() as connection:
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            INSERT INTO check_events (
+                user_id,
+                check_type,
+                created_at
+            )
+            VALUES (?, ?, ?)
+            """,
+            (
+                user_id,
+                check_type,
+                now,
+            )
+        )
+
+        connection.commit()
