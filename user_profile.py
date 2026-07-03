@@ -5,10 +5,12 @@ from storage import (
     get_user_data,
     reset_user_checks,
     add_check_event,
+    get_bonus_checks,
 )
 
 def get_user_profile(user_id: int) -> dict:
     used = get_user_checks(user_id)
+    bonus = get_bonus_checks(user_id)
     remaining = max(FREE_CHECKS_PER_MONTH - used, 0)
     user_data = get_user_data(user_id)
 
@@ -19,6 +21,7 @@ def get_user_profile(user_id: int) -> dict:
         "free_limit": FREE_CHECKS_PER_MONTH,
         "remaining_checks": remaining,
         "telegram_user": user_data,
+        "bonus_checks": bonus,
     }
 
 
@@ -54,10 +57,10 @@ def render_profile_text(user_id: int) -> str:
 
     return (
         "👤 <b>Ваш профиль</b>\n\n"
-        f"Статус: <b>Free</b>\n"
-        f"Бесплатных проверок: <b>{profile['remaining_checks']} из {profile['free_limit']}</b>\n\n"
-        f"Telegram: <b>{username}</b>\n\n"
-        f"Дата регистрации: <b>{registration_date}</b>"
+        f"Бесплатных проверок: "
+        f"<b>{profile['remaining_checks']} из {profile['free_limit']}</b>\n"
+        f"Бонусных проверок: "
+        f"<b>{profile['bonus_checks']}</b>\n\n"
     )
 
 def reset_profile_checks(user_id: int):

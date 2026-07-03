@@ -13,6 +13,10 @@ from database import (
     get_user,
     reset_user_checks as db_reset_user_checks,
     add_check_event as db_add_check_event,
+    get_bonus_checks as db_get_bonus_checks,
+    add_bonus_checks as db_add_bonus_checks,
+    use_bonus_check as db_use_bonus_check,
+    save_payment as db_save_payment,
 )
 
 user_data = {}
@@ -50,3 +54,32 @@ def get_users_statistics() -> dict:
 
 def add_check_event(user_id: int, check_type: str) -> None:
     db_add_check_event(user_id, check_type)
+
+def get_bonus_checks(user_id: int) -> int:
+    return db_get_bonus_checks(user_id)
+
+
+def add_bonus_checks(user_id: int, amount: int) -> None:
+    db_add_bonus_checks(user_id, amount)
+
+
+def use_bonus_check(user_id: int) -> bool:
+    return db_use_bonus_check(user_id)
+
+
+def save_payment(
+    user_id: int,
+    telegram_payment_charge_id: str,
+    payload: str,
+    amount: int,
+    currency: str,
+    status: str = "paid",
+) -> None:
+    db_save_payment(
+        user_id=user_id,
+        telegram_payment_charge_id=telegram_payment_charge_id,
+        payload=payload,
+        amount=amount,
+        currency=currency,
+        status=status,
+    )

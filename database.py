@@ -70,6 +70,30 @@ def init_db() -> None:
 
         connection.commit()
 
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS user_bonus_checks (
+                user_id INTEGER PRIMARY KEY,
+                bonus_checks INTEGER NOT NULL DEFAULT 0
+            )
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS payments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                telegram_payment_charge_id TEXT NOT NULL,
+                payload TEXT NOT NULL,
+                amount INTEGER NOT NULL,
+                currency TEXT NOT NULL,
+                status TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            )
+            """
+        )
+
 
 def get_used_checks(user_id: int) -> int:
     with get_connection() as connection:
@@ -304,6 +328,107 @@ def add_check_event(user_id: int, check_type: str) -> None:
             (
                 user_id,
                 check_type,
+                now,
+            )
+        )
+
+        connection.commit()
+
+def get_bonus_checks(user_id: int) -> int:
+    with get_connection() as connection:
+        cursor = connection.cursor()
+
+        cursor.execute(
+            "SELECT bonus_checks FROM user_bonus_checks WHERE user_id = ?",
+            (user_id,)
+        )
+
+        row = cursor.fetchone()
+
+    if row is None:
+        return 0
+
+    return row[0]
+
+
+def add_bonus_checks(user_id: int, amount: int) -> None:
+    with get_connection() as connection:
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            INSERT INTO user_bonus_checks(user_id, bonus_checks)
+            VALUES(?, ?)
+            ON CONFLICT(user_id)
+            DO UPDATE SET bonus_checks = bonus_checks + excluded.bonus_checks
+            """,
+            (user_id, amount)
+        )
+
+        connection.commit()
+
+
+def use_bonus_check(user_id: int) -> bool:
+    with get_connection() as connection:
+        cursor = connection.cursor()
+
+        cursor.execute(
+            "SELECT bonus_checks FROM user_bonus_checks WHERE user_id = ?",
+            (user_id,)
+        )
+
+        row = cursor.fetchone()
+
+        if row is None or row[0] <= 0:
+            return False
+
+        cursor.execute(
+            """
+            UPDATE user_bonus_checks
+            SET bonus_checks = bonus_checks - 1
+            WHERE user_id = ?
+            """,
+            (user_id,)
+        )
+
+        connection.commit()
+
+    return True
+
+
+def save_payment(
+    user_id: int,
+    telegram_payment_charge_id: str,
+    payload: str,
+    amount: int,
+    currency: str,
+    status: str = "paid",
+) -> None:
+    now = datetime.utcnow().isoformat()
+
+    with get_connection() as connection:
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            INSERT INTO payments (
+                user_id,
+                telegram_payment_charge_id,
+                payload,
+                amount,
+                currency,
+                status,
+                created_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                user_id,
+                telegram_payment_charge_id,
+                payload,
+                amount,
+                currency,
+                status,
                 now,
             )
         )
