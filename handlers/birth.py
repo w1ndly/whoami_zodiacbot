@@ -1,7 +1,5 @@
 from datetime import datetime
 
-from urllib.parse import quote
-
 from aiogram.types import (
     Message,
     InlineKeyboardMarkup,
@@ -18,7 +16,7 @@ from storage import (
     get_bonus_checks,
 )
 
-def after_check_keyboard(share_text):
+def after_check_keyboard():
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -26,7 +24,8 @@ def after_check_keyboard(share_text):
                     text="🔄 Другая дата",
                     callback_data="new_check"
                 )
-            ],
+            ]
+        ]
     )
 
 

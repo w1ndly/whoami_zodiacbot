@@ -1,5 +1,4 @@
 from aiogram import Router
-from urllib.parse import quote
 
 from aiogram.types import (
     CallbackQuery,
@@ -27,15 +26,16 @@ from services.payment_gateway import create_robokassa_payment
 router = Router()
 
 
-def after_check_keyboard(share_text):
+def after_check_keyboard():
     return InlineKeyboardMarkup(
-        inline_keyboard=
+        inline_keyboard=[
             [
                 InlineKeyboardButton(
                     text="🔄 Другая дата",
                     callback_data="new_check"
                 )
             ],
+        ]
     )
 
 calculate_sun_sign = None
@@ -83,11 +83,16 @@ async def handle_callback(callback: CallbackQuery):
         return
 
     if callback.data == "buy_checks":
+        await callback.message.answer(
+            render_top_up_text(),
+            reply_markup=top_up_checks_keyboard()
+        )
+        return
 
-        if callback.data.startswith("pay_checks_"):
-            pack_key = callback.data.replace("pay_checks_", "")
+    if callback.data.startswith("pay_checks_"):
+        pack_key = callback.data.replace("pay_checks_", "")
 
-            pack = get_payment_pack(pack_key)
+        pack = get_payment_pack(pack_key)
 
         if pack is None:
             await callback.message.answer(
