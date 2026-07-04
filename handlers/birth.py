@@ -242,9 +242,6 @@ async def handle_birth_date(
 
     await message.answer(
         result_text,
-        reply_markup=after_check_keyboard(
-            "Проверь, кто ты по знаку 🔮\n\n"
-            + result_text
-        )
+        reply_markup=after_check_keyboard()
     )
     return True
