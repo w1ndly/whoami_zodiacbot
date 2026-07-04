@@ -22,6 +22,7 @@ from database import (
     mark_robokassa_order_paid as db_mark_robokassa_order_paid,
     get_last_robokassa_orders as db_get_last_robokassa_orders,
     get_last_combined_orders as db_get_last_combined_orders,
+    get_all_robokassa_orders as db_get_all_robokassa_orders,
     get_robokassa_order_status_counts as db_get_robokassa_order_status_counts,
     get_robokassa_orders_by_status as db_get_robokassa_orders_by_status,
     get_telegram_payments_stats as db_get_telegram_payments_stats,
@@ -134,3 +135,6 @@ def get_telegram_payments_stats() -> dict:
 
 def get_last_telegram_payments(limit: int = 10) -> list[dict]:
     return db_get_last_telegram_payments(limit)
+
+def get_all_robokassa_orders() -> list[dict]:
+    return db_get_all_robokassa_orders()

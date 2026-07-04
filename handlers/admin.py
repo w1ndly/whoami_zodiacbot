@@ -5,9 +5,11 @@ from aiogram.types import (
     CallbackQuery,
     InlineKeyboardMarkup,
     InlineKeyboardButton,
+    BufferedInputFile,
 )
 
 from services.admin_service import is_admin
+from services.report_service import build_robokassa_report
 from storage import (
     get_last_robokassa_orders,
     get_last_combined_orders,
@@ -136,6 +138,7 @@ async def admin_command(message: Message):
         "Доступные команды:\n\n"
         "/stats — статистика пользователей\n"
         "/admin — список админских команд\n"
+        "/orders_rs_file — txt-экспорт robokassa\n"
         "/orders — последние сводные заказы\n"
         "/orders_rs — заказы Robokassa\n"
         "/orders_tg — заказы Telegram Stars\n"
@@ -328,6 +331,24 @@ async def orders_tg_back_callback(callback: CallbackQuery):
     await callback.message.answer(
         text,
         reply_markup=telegram_orders_keyboard()
+    )
+
+
+@router.message(Command("orders_rs_file"))
+async def orders_rs_file_command(message: Message):
+    if not is_admin(message.from_user.id):
+        return
+
+    filename, content = build_robokassa_report()
+
+    file = BufferedInputFile(
+        content.encode("utf-8"),
+        filename=filename,
+    )
+
+    await message.answer_document(
+        file,
+        caption="📄 Экспорт заказов Robokassa готов."
     )
 
 
