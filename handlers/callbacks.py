@@ -1,4 +1,6 @@
 from aiogram import Router
+from urllib.parse import quote
+
 from aiogram.types import (
     CallbackQuery,
     InlineKeyboardMarkup,
@@ -25,7 +27,7 @@ from services.payment_gateway import create_robokassa_payment
 router = Router()
 
 
-def after_check_keyboard():
+def after_check_keyboard(share_text):
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -39,8 +41,7 @@ def after_check_keyboard():
                     text="📤 Поделиться",
                     url=(
                         "https://t.me/share/url?"
-                        "url=https://t.me/whoami_zodiacbot&"
-                        "text=Проверь, кто ты по знаку — это быстро и интересно 🔮"
+                        f"text={quote(share_text)}"
                     )
                 )
             ],
@@ -311,7 +312,10 @@ async def handle_callback(callback: CallbackQuery):
         await callback.message.answer(
             render_result_message(sign, extra=extra)
             + f"\n\nОсталось проверок: <b>{get_remaining_checks(user_id)}</b>",
-            reply_markup=after_check_keyboard()
+            reply_markup=after_check_keyboard(
+                "Проверь, кто ты по знаку 🔮\n\n"
+                + render_result_message(sign, extra=extra)
+            )
         )
         return
 
@@ -384,7 +388,10 @@ async def handle_callback(callback: CallbackQuery):
                 "✨ В выбранном месте в эту дату Солнце не переходило из одного знака в другой.\n\n"
                 + render_result_message(result["sign"])
                 + f"\n\nОсталось проверок: <b>{get_remaining_checks(user_id)}</b>",
-                reply_markup=after_check_keyboard()
+                reply_markup=after_check_keyboard(
+                    "Проверь, кто ты по знаку 🔮\n\n"
+                    + render_result_message(sign, extra=extra)
+                )
             )
             return
 
@@ -400,7 +407,10 @@ async def handle_callback(callback: CallbackQuery):
             f"то вы — {result['to_sign']}.\n\n"
             "Теперь вы знаете. И все, что осталось — найти точное время своего рождения.\n\n"
             f"Осталось проверок: <b>{get_remaining_checks(user_id)}</b>",
-            reply_markup=after_check_keyboard()
+            reply_markup=after_check_keyboard(
+                "Проверь, кто ты по знаку 🔮\n\n"
+                + render_result_message(sign, extra=extra)
+            )
         )
         return
 
