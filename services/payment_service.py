@@ -50,19 +50,19 @@ def top_up_checks_keyboard() -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text="⭐ Начальный • 100 ⭐",
-                    callback_data="pay_checks_checks_10"
+                    callback_data="pay_checks_10"
                 )
             ],
             [
                 InlineKeyboardButton(
                     text="🔥 Самый популярный • 220 ⭐",
-                    callback_data="pay_checks_checks_25"
+                    callback_data="pay_checks_25"
                 )
             ],
             [
                 InlineKeyboardButton(
                     text="💎 Лучшее предложение • 390 ⭐",
-                    callback_data="pay_checks_checks_50"
+                    callback_data="pay_checks_50"
                 )
             ],
         ]

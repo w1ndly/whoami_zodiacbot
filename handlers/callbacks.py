@@ -90,7 +90,7 @@ async def handle_callback(callback: CallbackQuery):
         return
 
     if callback.data.startswith("pay_checks_"):
-        pack_key = callback.data.replace("pay_checks_", "")
+        pack_key = "checks_" + callback.data.replace("pay_checks_", "")
 
         pack = get_payment_pack(pack_key)
 
