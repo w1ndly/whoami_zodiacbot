@@ -5,6 +5,7 @@ from aiogram.types import Message
 from services.admin_service import is_admin
 from storage import (
     get_last_robokassa_orders,
+    get_last_combined_orders,
     get_robokassa_order,
     add_bonus_checks,
     mark_robokassa_order_paid,
@@ -33,24 +34,29 @@ async def orders_command(message: Message):
     if not is_admin(message.from_user.id):
         return
 
-    orders = get_last_robokassa_orders()
+    orders = get_last_combined_orders()
 
     if not orders:
-        await message.answer("📦 Заказов Robokassa пока нет.")
+        await message.answer("📦 Заказов пока нет.")
         return
 
-    text = "📦 <b>Последние заказы Robokassa</b>\n\n"
+    text = "📦 <b>Последние заказы</b>\n\n"
 
     for order in orders:
+        source_icon = "⭐ TG"
+        amount_text = f"{order['amount']} {order['currency']}"
+
+        if order["source"] == "RS":
+            source_icon = "💳 RS"
+            amount_text = f"{order['amount']} ₽"
+
         text += (
-            f"#{order['id']}\n"
+            f"{source_icon} #{order['id']}\n"
             f"👤 User ID: <code>{order['user_id']}</code>\n"
             f"📦 Пакет: <b>{order['pack_key']}</b>\n"
-            f"✨ Проверок: <b>{order['checks']}</b>\n"
-            f"💰 Сумма: <b>{order['amount']} ₽</b>\n"
+            f"💰 Сумма: <b>{amount_text}</b>\n"
             f"📌 Статус: <b>{order['status']}</b>\n"
-            f"🕒 Создан: <code>{order['created_at']}</code>\n"
-            f"✅ Оплачен: <code>{order.get('paid_at') or '—'}</code>\n\n"
+            f"🕒 Дата: <code>{order['created_at']}</code>\n\n"
         )
 
     await message.answer(text)

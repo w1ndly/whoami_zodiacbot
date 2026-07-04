@@ -694,3 +694,77 @@ def get_last_robokassa_orders(limit: int = 10) -> list[dict]:
         }
         for row in rows
     ]
+
+def get_last_combined_orders(limit: int = 10) -> list[dict]:
+    orders = []
+
+    with get_connection() as connection:
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            SELECT id, user_id, payload, amount, currency, status, created_at
+            FROM payments
+            ORDER BY id DESC
+            LIMIT ?
+            """,
+            (limit,),
+        )
+
+        payment_rows = cursor.fetchall()
+
+        cursor.execute(
+            """
+            SELECT id, user_id, pack_key, checks, amount, status, created_at, paid_at
+            FROM robokassa_orders
+            WHERE status != 'paid'
+            ORDER BY id DESC
+            LIMIT ?
+            """,
+            (limit,),
+        )
+
+        robokassa_rows = cursor.fetchall()
+
+    for row in payment_rows:
+        currency = row[4]
+
+        source = "TG"
+        if currency == "RUB":
+            source = "RS"
+
+        orders.append(
+            {
+                "source": source,
+                "id": row[0],
+                "user_id": row[1],
+                "pack_key": row[2],
+                "checks": None,
+                "amount": row[3],
+                "currency": row[4],
+                "status": row[5],
+                "created_at": row[6],
+            }
+        )
+
+    for row in robokassa_rows:
+        orders.append(
+            {
+                "source": "RS",
+                "id": row[0],
+                "user_id": row[1],
+                "pack_key": row[2],
+                "checks": row[3],
+                "amount": row[4],
+                "currency": "RUB",
+                "status": row[5],
+                "created_at": row[6],
+            }
+        )
+
+    orders.sort(
+        key=lambda order: order["created_at"],
+        reverse=True
+    )
+
+    return orders[:limit]
