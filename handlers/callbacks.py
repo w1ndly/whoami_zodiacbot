@@ -101,6 +101,28 @@ async def handle_callback(callback: CallbackQuery):
             provider_token="",
             currency="XTR",
             prices=get_invoice_prices(payload),
+            reply_markup=InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [
+                        InlineKeyboardButton(
+                            text="⭐ Оплатить Stars",
+                            pay=True
+                        )
+                    ],
+                    [
+                        InlineKeyboardButton(
+                            text="← Другой способ оплаты",
+                            callback_data=f"pay_checks_{payload}"
+                        )
+                    ],
+                    [
+                        InlineKeyboardButton(
+                            text="← Назад",
+                            callback_data="buy_checks"
+                        )
+                    ],
+                ]
+            )
         )
         return
 
@@ -140,13 +162,13 @@ async def handle_callback(callback: CallbackQuery):
                     ],
                     [
                         InlineKeyboardButton(
-                            text="← Выбрать другой способ",
+                            text="← Другой способ оплаты",
                             callback_data=f"pay_checks_{pack_key}"
                         )
                     ],
                     [
                         InlineKeyboardButton(
-                            text="← Назад к пакетам",
+                            text="← Назад",
                             callback_data="buy_checks"
                         )
                     ],
