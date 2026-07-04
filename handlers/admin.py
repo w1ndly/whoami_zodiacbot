@@ -9,7 +9,10 @@ from aiogram.types import (
 )
 
 from services.admin_service import is_admin
-from services.report_service import build_robokassa_report
+from services.report_service import (
+    build_robokassa_report,
+    build_orders_report,
+)
 from storage import (
     get_last_robokassa_orders,
     get_last_combined_orders,
@@ -349,6 +352,24 @@ async def orders_rs_file_command(message: Message):
     await message.answer_document(
         file,
         caption="📄 Экспорт заказов Robokassa готов."
+    )
+
+
+@router.message(Command("orders_file"))
+async def orders_file_command(message: Message):
+    if not is_admin(message.from_user.id):
+        return
+
+    filename, content = build_orders_report()
+
+    file = BufferedInputFile(
+        content.encode("utf-8"),
+        filename=filename,
+    )
+
+    await message.answer_document(
+        file,
+        caption="📄 Полный отчет по заказам готов."
     )
 
 

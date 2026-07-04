@@ -46,3 +46,6 @@ TXT-экспорт заказов Telegram Stars.
 
 /payorder order_id
 Вручную отметить Robokassa-заказ как оплаченный.
+
+/orders_file
+TXT-экспорт всех заказов и оплат.

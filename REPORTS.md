@@ -44,3 +44,17 @@ TXT-экспорт всех заказов Robokassa.
 TXT-экспорт заказов Telegram Stars.
 
 Планируется по той же логике, что и Robokassa-экспорт.
+
+## /orders_file
+
+Полный TXT-отчет по заказам.
+
+Содержит:
+- дату и время формирования;
+- сводку;
+- финансы;
+- популярность пакетов;
+- Telegram Stars;
+- Robokassa CREATED;
+- Robokassa PAID;
+- Robokassa FAILED.

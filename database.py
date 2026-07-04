@@ -811,6 +811,35 @@ def get_robokassa_orders_by_status(
     ]
 
 
+def get_all_payments() -> list[dict]:
+    with get_connection() as connection:
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            SELECT id, user_id, telegram_payment_charge_id, payload, amount, currency, status, created_at
+            FROM payments
+            ORDER BY id DESC
+            """
+        )
+
+        rows = cursor.fetchall()
+
+    return [
+        {
+            "id": row[0],
+            "user_id": row[1],
+            "telegram_payment_charge_id": row[2],
+            "payload": row[3],
+            "amount": row[4],
+            "currency": row[5],
+            "status": row[6],
+            "created_at": row[7],
+        }
+        for row in rows
+    ]
+
+
 def get_all_robokassa_orders() -> list[dict]:
     with get_connection() as connection:
         cursor = connection.cursor()
