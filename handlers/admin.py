@@ -22,6 +22,19 @@ from storage import (
 router = Router()
 
 
+def robokassa_back_keyboard():
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="← Назад",
+                    callback_data="orders_rs_back"
+                )
+            ]
+        ]
+    )
+
+
 def robokassa_orders_keyboard():
     return InlineKeyboardMarkup(
         inline_keyboard=[
@@ -168,6 +181,53 @@ async def orders_rs_command(message: Message):
     )
 
 
+@router.callback_query(lambda callback: callback.data == "orders_rs_back")
+async def orders_rs_back_callback(callback: CallbackQuery):
+    if not is_admin(callback.from_user.id):
+        await callback.answer()
+        return
+
+    await callback.answer()
+
+    counts = get_robokassa_order_status_counts()
+
+    created_orders = get_robokassa_orders_by_status("created", limit=3)
+    paid_orders = get_robokassa_orders_by_status("paid", limit=3)
+    failed_orders = get_robokassa_orders_by_status("failed", limit=3)
+
+    text = (
+        "💳 <b>Robokassa</b>\n\n"
+        f"⏳ Created: <b>{counts.get('created', 0)}</b>\n"
+        f"✅ Paid: <b>{counts.get('paid', 0)}</b>\n"
+        f"❌ Failed: <b>{counts.get('failed', 0)}</b>\n\n"
+        "━━━━━━━━━━━━━━\n\n"
+    )
+
+    text += render_robokassa_orders_block(
+        "⏳ <b>CREATED — последние 3</b>",
+        created_orders,
+    )
+
+    text += "━━━━━━━━━━━━━━\n\n"
+
+    text += render_robokassa_orders_block(
+        "✅ <b>PAID — последние 3</b>",
+        paid_orders,
+    )
+
+    text += "━━━━━━━━━━━━━━\n\n"
+
+    text += render_robokassa_orders_block(
+        "❌ <b>FAILED — последние 3</b>",
+        failed_orders,
+    )
+
+    await callback.message.answer(
+        text,
+        reply_markup=robokassa_orders_keyboard()
+    )
+
+
 @router.callback_query(lambda callback: callback.data.startswith("orders_rs_"))
 async def orders_rs_callback(callback: CallbackQuery):
     if not is_admin(callback.from_user.id):
@@ -198,7 +258,7 @@ async def orders_rs_callback(callback: CallbackQuery):
 
     await callback.message.answer(
         text,
-        reply_markup=robokassa_orders_keyboard()
+        reply_markup=robokassa_back_keyboard()
     )
 
 
