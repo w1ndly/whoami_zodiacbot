@@ -307,7 +307,8 @@ async def handle_callback(callback: CallbackQuery):
         await callback.message.answer(
             render_result_message(sign, extra=extra)
             + f"\n\nОсталось проверок: <b>{get_remaining_checks(user_id)}</b>"
-            + "\n\n📤 <i>Чтобы поделиться результатом, перешлите это сообщение.</i>"
+            + "\n\n📤 <i>Чтобы поделиться результатом, перешлите это сообщение.</i>",
+            reply_markup=after_check_keyboard()
         )
         return
 
@@ -380,7 +381,8 @@ async def handle_callback(callback: CallbackQuery):
                 "✨ В выбранном месте в эту дату Солнце не переходило из одного знака в другой.\n\n"
                 + render_result_message(result["sign"])
                 + f"\n\nОсталось проверок: <b>{get_remaining_checks(user_id)}</b>",
-                "\n\n📤 <i>Чтобы поделиться результатом, перешлите это сообщение.</i>"
+                "\n\n📤 <i>Чтобы поделиться результатом, перешлите это сообщение.</i>",
+                reply_markup=after_check_keyboard()
             )
             return
 
@@ -396,7 +398,8 @@ async def handle_callback(callback: CallbackQuery):
             f"то вы — {result['to_sign']}.\n\n"
             "Теперь вы знаете. И все, что осталось — найти точное время своего рождения.\n\n"
             f"Осталось проверок: <b>{get_remaining_checks(user_id)}</b>"
-            "\n\n📤 <i>Чтобы поделиться результатом, просто перешлите это сообщение другу.</i>"
+            "\n\n📤 <i>Чтобы поделиться результатом, просто перешлите это сообщение другу.</i>",
+            reply_markup=after_check_keyboard()
         )
         return
 
