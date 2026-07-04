@@ -39,6 +39,7 @@ def after_check_keyboard():
                     text="📤 Поделиться",
                     url=(
                         "https://t.me/share/url?"
+                        "url=https://t.me/whoami_zodiacbot&"
                         "text=Проверь, кто ты по знаку — это быстро и интересно 🔮"
                     )
                 )
