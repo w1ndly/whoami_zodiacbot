@@ -380,8 +380,8 @@ async def handle_callback(callback: CallbackQuery):
             await callback.message.answer(
                 "✨ В выбранном месте в эту дату Солнце не переходило из одного знака в другой.\n\n"
                 + render_result_message(result["sign"])
-                + f"\n\nОсталось проверок: <b>{get_remaining_checks(user_id)}</b>",
-                "\n\n📤 <i>Чтобы поделиться результатом, перешлите это сообщение.</i>\n",
+                + f"\n\nОсталось проверок: <b>{get_remaining_checks(user_id)}</b>"
+                + "\n\n📤 <i>Чтобы поделиться результатом, перешлите это сообщение.</i>\n",
                 reply_markup=after_check_keyboard()
             )
             return
