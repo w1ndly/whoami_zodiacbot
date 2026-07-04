@@ -13,6 +13,8 @@ from storage import (
     get_last_combined_orders,
     get_robokassa_order_status_counts,
     get_robokassa_orders_by_status,
+    get_telegram_payments_stats,
+    get_last_telegram_payments,
     get_robokassa_order,
     add_bonus_checks,
     mark_robokassa_order_paid,
@@ -33,6 +35,51 @@ def robokassa_back_keyboard():
             ]
         ]
     )
+
+
+def telegram_orders_keyboard():
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="✅ Paid",
+                    callback_data="orders_tg_paid"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="← Назад",
+                    callback_data="orders_tg_back"
+                )
+            ],
+        ]
+    )
+
+
+def render_telegram_payment(payment: dict) -> str:
+    return (
+        f"⭐ TG #{payment['id']}\n"
+        f"👤 User ID: <code>{payment['user_id']}</code>\n"
+        f"📦 Пакет: <b>{payment['payload']}</b>\n"
+        f"💰 Сумма: <b>{payment['amount']} {payment['currency']}</b>\n"
+        f"📌 Статус: <b>{payment['status']}</b>\n"
+        f"🕒 Дата: <code>{payment['created_at']}</code>\n\n"
+    )
+
+
+def render_telegram_payments_block(
+    title: str,
+    payments: list[dict],
+) -> str:
+    text = f"{title}\n\n"
+
+    if not payments:
+        return text + "— нет заказов\n\n"
+
+    for payment in payments:
+        text += render_telegram_payment(payment)
+
+    return text
 
 
 def robokassa_orders_keyboard():
@@ -100,6 +147,7 @@ async def admin_command(message: Message):
         "/admin — список админских команд\n"
         "/orders — последние сводные заказы\n"
         "/orders_rs — заказы Robokassa\n"
+        "/orders_tg — заказы Telegram Stars\n"
         "/add_bonus 10 — добавить бонусные проверки\n"
         "/add_bonus user_id 10 — начислить бонусные проверки\n"
     )
@@ -259,6 +307,83 @@ async def orders_rs_callback(callback: CallbackQuery):
     await callback.message.answer(
         text,
         reply_markup=robokassa_back_keyboard()
+    )
+
+
+@router.message(Command("orders_tg"))
+async def orders_tg_command(message: Message):
+    if not is_admin(message.from_user.id):
+        return
+
+    stats = get_telegram_payments_stats()
+    payments = get_last_telegram_payments(limit=3)
+
+    text = (
+        "⭐ <b>Telegram Stars</b>\n\n"
+        f"✅ Paid: <b>{stats.get('paid_count', 0)}</b>\n"
+        f"⭐ Stars всего: <b>{stats.get('stars_total', 0)}</b>\n\n"
+        "━━━━━━━━━━━━━━\n\n"
+    )
+
+    text += render_telegram_payments_block(
+        "✅ <b>PAID — последние 3</b>",
+        payments,
+    )
+
+    await message.answer(
+        text,
+        reply_markup=telegram_orders_keyboard()
+    )
+
+
+@router.callback_query(lambda callback: callback.data == "orders_tg_paid")
+async def orders_tg_paid_callback(callback: CallbackQuery):
+    if not is_admin(callback.from_user.id):
+        await callback.answer()
+        return
+
+    await callback.answer()
+
+    payments = get_last_telegram_payments(limit=10)
+
+    text = "⭐ <b>Telegram Stars</b>\n\n"
+    text += render_telegram_payments_block(
+        "✅ <b>PAID — последние 10</b>",
+        payments,
+    )
+
+    await callback.message.answer(
+        text,
+        reply_markup=telegram_orders_keyboard()
+    )
+
+
+@router.callback_query(lambda callback: callback.data == "orders_tg_back")
+async def orders_tg_back_callback(callback: CallbackQuery):
+    if not is_admin(callback.from_user.id):
+        await callback.answer()
+        return
+
+    await callback.answer()
+
+    stats = get_telegram_payments_stats()
+    payments = get_last_telegram_payments(limit=3)
+
+    text = (
+        "⭐ <b>Telegram Stars</b>\n\n"
+        f"✅ Paid: <b>{stats.get('paid_count', 0)}</b>\n"
+        f"⭐ Stars всего: <b>{stats.get('stars_total', 0)}</b>\n\n"
+        "━━━━━━━━━━━━━━\n\n"
+    )
+
+    text += render_telegram_payments_block(
+        "✅ <b>PAID — последние 3</b>",
+        payments,
+    )
+
+    await callback.message.answer(
+        text,
+        reply_markup=telegram_orders_keyboard()
     )
 
 

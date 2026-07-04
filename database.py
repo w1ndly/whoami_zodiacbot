@@ -696,6 +696,60 @@ def get_last_robokassa_orders(limit: int = 10) -> list[dict]:
     ]
 
 
+def get_telegram_payments_stats() -> dict:
+    with get_connection() as connection:
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            SELECT
+                COUNT(*),
+                COALESCE(SUM(amount), 0)
+            FROM payments
+            WHERE currency = 'XTR'
+              AND status = 'paid'
+            """
+        )
+
+        row = cursor.fetchone()
+
+    return {
+        "paid_count": row[0],
+        "stars_total": row[1],
+    }
+
+
+def get_last_telegram_payments(limit: int = 10) -> list[dict]:
+    with get_connection() as connection:
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            SELECT id, user_id, payload, amount, currency, status, created_at
+            FROM payments
+            WHERE currency = 'XTR'
+            ORDER BY id DESC
+            LIMIT ?
+            """,
+            (limit,),
+        )
+
+        rows = cursor.fetchall()
+
+    return [
+        {
+            "id": row[0],
+            "user_id": row[1],
+            "payload": row[2],
+            "amount": row[3],
+            "currency": row[4],
+            "status": row[5],
+            "created_at": row[6],
+        }
+        for row in rows
+    ]
+
+
 def get_robokassa_order_status_counts() -> dict:
     with get_connection() as connection:
         cursor = connection.cursor()
