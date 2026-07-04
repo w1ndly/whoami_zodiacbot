@@ -24,19 +24,6 @@ from storage import (
 router = Router()
 
 
-def robokassa_back_keyboard():
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="← Назад",
-                    callback_data="orders_rs_back"
-                )
-            ]
-        ]
-    )
-
-
 def telegram_orders_keyboard():
     return InlineKeyboardMarkup(
         inline_keyboard=[
@@ -82,28 +69,32 @@ def render_telegram_payments_block(
     return text
 
 
-def robokassa_orders_keyboard():
+def robokassa_orders_keyboard(active_status: str | None = None):
+    def button_text(status: str, text: str) -> str:
+        if active_status == status:
+            return f"🟢 {text}"
+        return text
+
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="⏳ Created",
+                    text=button_text("created", "⏳ Created"),
                     callback_data="orders_rs_created"
                 ),
                 InlineKeyboardButton(
-                    text="✅ Paid",
+                    text=button_text("paid", "✅ Paid"),
                     callback_data="orders_rs_paid"
                 ),
             ],
             [
                 InlineKeyboardButton(
-                    text="❌ Failed",
+                    text=button_text("failed", "❌ Failed"),
                     callback_data="orders_rs_failed"
                 )
             ],
         ]
     )
-
 
 def render_robokassa_order(order: dict) -> str:
     paid_at = order.get("paid_at") or "—"
@@ -229,53 +220,6 @@ async def orders_rs_command(message: Message):
     )
 
 
-@router.callback_query(lambda callback: callback.data == "orders_rs_back")
-async def orders_rs_back_callback(callback: CallbackQuery):
-    if not is_admin(callback.from_user.id):
-        await callback.answer()
-        return
-
-    await callback.answer()
-
-    counts = get_robokassa_order_status_counts()
-
-    created_orders = get_robokassa_orders_by_status("created", limit=3)
-    paid_orders = get_robokassa_orders_by_status("paid", limit=3)
-    failed_orders = get_robokassa_orders_by_status("failed", limit=3)
-
-    text = (
-        "💳 <b>Robokassa</b>\n\n"
-        f"⏳ Created: <b>{counts.get('created', 0)}</b>\n"
-        f"✅ Paid: <b>{counts.get('paid', 0)}</b>\n"
-        f"❌ Failed: <b>{counts.get('failed', 0)}</b>\n\n"
-        "━━━━━━━━━━━━━━\n\n"
-    )
-
-    text += render_robokassa_orders_block(
-        "⏳ <b>CREATED — последние 3</b>",
-        created_orders,
-    )
-
-    text += "━━━━━━━━━━━━━━\n\n"
-
-    text += render_robokassa_orders_block(
-        "✅ <b>PAID — последние 3</b>",
-        paid_orders,
-    )
-
-    text += "━━━━━━━━━━━━━━\n\n"
-
-    text += render_robokassa_orders_block(
-        "❌ <b>FAILED — последние 3</b>",
-        failed_orders,
-    )
-
-    await callback.message.answer(
-        text,
-        reply_markup=robokassa_orders_keyboard()
-    )
-
-
 @router.callback_query(lambda callback: callback.data.startswith("orders_rs_"))
 async def orders_rs_callback(callback: CallbackQuery):
     if not is_admin(callback.from_user.id):
@@ -306,7 +250,7 @@ async def orders_rs_callback(callback: CallbackQuery):
 
     await callback.message.answer(
         text,
-        reply_markup=robokassa_back_keyboard()
+        reply_markup=robokassa_orders_keyboard(active_status=status)
     )
 
 
