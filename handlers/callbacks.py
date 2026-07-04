@@ -409,7 +409,15 @@ async def handle_callback(callback: CallbackQuery):
             f"Осталось проверок: <b>{get_remaining_checks(user_id)}</b>",
             reply_markup=after_check_keyboard(
                 "Проверь, кто ты по знаку 🔮\n\n"
-                + render_result_message(sign, extra=extra)
+                f"✨ Расчет выполнен по данным:\n\n"
+                f"📅 <b>{data.get('birth_date')}</b>\n"
+                f"🌍 <b>{short_place_name(selected_place['name'])}</b>\n\n"
+                f"✨ В этот день Солнце перешло из знака {result['from_sign']} "
+                f"в знак {result['to_sign']} в {result['transition_time']}.\n\n"
+                f"Если вы родились до {result['transition_time']}, "
+                f"то вы — {result['from_sign']}.\n\n"
+                f"Если после {result['transition_time']}, "
+                f"то вы — {result['to_sign']}."
             )
         )
         return

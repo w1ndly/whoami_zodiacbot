@@ -1,6 +1,12 @@
 from datetime import datetime
 
-from aiogram.types import Message
+from urllib.parse import quote
+
+from aiogram.types import (
+    Message,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+)
 
 from services.payment_service import (
     buy_checks_keyboard,
@@ -11,6 +17,28 @@ from storage import (
     user_data,
     get_bonus_checks,
 )
+
+def after_check_keyboard(share_text):
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="🔄 Другая дата",
+                    callback_data="new_check"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="📤 Поделиться результатом",
+                    url=(
+                        "https://t.me/share/url?"
+                        f"text={quote(share_text)}"
+                    )
+                )
+            ],
+        ]
+    )
+
 
 async def handle_waiting_for_time(
     message: Message,
@@ -216,8 +244,13 @@ async def handle_birth_date(
     else:
         footer = ""
 
+    result_text = render_result_message(sign) + footer
+
     await message.answer(
-        render_result_message(sign) + footer,
-        reply_markup=reply_markup
+        result_text,
+        reply_markup=after_check_keyboard(
+            "Проверь, кто ты по знаку 🔮\n\n"
+            + result_text
+        )
     )
     return True
