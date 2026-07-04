@@ -27,16 +27,6 @@ def after_check_keyboard(share_text):
                     callback_data="new_check"
                 )
             ],
-            [
-                InlineKeyboardButton(
-                    text="📤 Поделиться результатом",
-                    url=(
-                        "https://t.me/share/url?"
-                        f"text={quote(share_text)}"
-                    )
-                )
-            ],
-        ]
     )
 
 
@@ -244,7 +234,12 @@ async def handle_birth_date(
     else:
         footer = ""
 
-    result_text = render_result_message(sign) + footer
+    result_text = (
+    render_result_message(sign)
+    + footer
+    + "\n\n"
+    + "📤 <i>Чтобы поделиться результатом, перешлите это сообщение.</i>"
+)
 
     await message.answer(
         result_text,

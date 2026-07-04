@@ -29,23 +29,13 @@ router = Router()
 
 def after_check_keyboard(share_text):
     return InlineKeyboardMarkup(
-        inline_keyboard=[
+        inline_keyboard=
             [
                 InlineKeyboardButton(
                     text="🔄 Другая дата",
                     callback_data="new_check"
                 )
             ],
-            [
-                InlineKeyboardButton(
-                    text="📤 Поделиться",
-                    url=(
-                        "https://t.me/share/url?"
-                        f"text={quote(share_text)}"
-                    )
-                )
-            ],
-        ]
     )
 
 calculate_sun_sign = None
@@ -311,11 +301,8 @@ async def handle_callback(callback: CallbackQuery):
 
         await callback.message.answer(
             render_result_message(sign, extra=extra)
-            + f"\n\nОсталось проверок: <b>{get_remaining_checks(user_id)}</b>",
-            reply_markup=after_check_keyboard(
-                "Проверь, кто ты по знаку 🔮\n\n"
-                + render_result_message(sign, extra=extra)
-            )
+            + f"\n\nОсталось проверок: <b>{get_remaining_checks(user_id)}</b>"
+            + "\n\n📤 <i>Чтобы поделиться результатом, перешлите это сообщение.</i>"
         )
         return
 
@@ -388,10 +375,7 @@ async def handle_callback(callback: CallbackQuery):
                 "✨ В выбранном месте в эту дату Солнце не переходило из одного знака в другой.\n\n"
                 + render_result_message(result["sign"])
                 + f"\n\nОсталось проверок: <b>{get_remaining_checks(user_id)}</b>",
-                reply_markup=after_check_keyboard(
-                    "Проверь, кто ты по знаку 🔮\n\n"
-                    + render_result_message(sign, extra=extra)
-                )
+                "\n\n📤 <i>Чтобы поделиться результатом, перешлите это сообщение.</i>"
             )
             return
 
@@ -406,19 +390,8 @@ async def handle_callback(callback: CallbackQuery):
             f"Если после <b>{result['transition_time']}</b>, "
             f"то вы — {result['to_sign']}.\n\n"
             "Теперь вы знаете. И все, что осталось — найти точное время своего рождения.\n\n"
-            f"Осталось проверок: <b>{get_remaining_checks(user_id)}</b>",
-            reply_markup=after_check_keyboard(
-                "Проверь, кто ты по знаку 🔮\n\n"
-                f"✨ Расчет выполнен по данным:\n\n"
-                f"📅 <b>{data.get('birth_date')}</b>\n"
-                f"🌍 <b>{short_place_name(selected_place['name'])}</b>\n\n"
-                f"✨ В этот день Солнце перешло из знака {result['from_sign']} "
-                f"в знак {result['to_sign']} в {result['transition_time']}.\n\n"
-                f"Если вы родились до {result['transition_time']}, "
-                f"то вы — {result['from_sign']}.\n\n"
-                f"Если после {result['transition_time']}, "
-                f"то вы — {result['to_sign']}."
-            )
+            f"Осталось проверок: <b>{get_remaining_checks(user_id)}</b>"
+            "\n\n📤 <i>Чтобы поделиться результатом, просто перешлите это сообщение другу.</i>"
         )
         return
 
