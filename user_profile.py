@@ -156,7 +156,8 @@ def render_profile_text(user_id: int) -> str:
         f"👁 Выполнено бесплатных проверок: <b>{profile['used_checks']}</b>\n"
         f"📅 Первый запуск: <b>{registration_date_text}</b>\n"
         f"🔗 Telegram: <b>{username}</b>\n\n"
-        "✨ Проверки можно пополнить в любой момент."
+        f"<b>Чтобы начать, просто введите дату</b>\n\n"
+        "✨ Проверки можно пополнить в любой момент.\n\n"
     )
 
 
