@@ -24,6 +24,28 @@ from services.payment_gateway import create_robokassa_payment
 
 router = Router()
 
+
+def after_check_keyboard():
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="🔄 Другая дата",
+                    callback_data="new_check"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="📤 Поделиться",
+                    url=(
+                        "https://t.me/share/url?"
+                        "text=Проверь, кто ты по знаку — это быстро и интересно 🔮"
+                    )
+                )
+            ],
+        ]
+    )
+
 calculate_sun_sign = None
 find_sun_transition_time = None
 render_place_request_text = None
@@ -57,17 +79,23 @@ async def handle_callback(callback: CallbackQuery):
 
     await callback.answer()
 
-    if callback.data == "buy_checks":
+    if callback.data == "new_check":
+        user_data.pop(user_id, None)
+
         await callback.message.answer(
-            render_top_up_text(),
-            reply_markup=top_up_checks_keyboard()
+            "Введите дату рождения в формате:\n"
+            "дд.мм.гггг\n\n"
+            "Например:\n"
+            "21.03.1990"
         )
         return
 
-    if callback.data.startswith("pay_checks_"):
-        pack_key = callback.data.replace("pay_checks_", "")
+    if callback.data == "buy_checks":
 
-        pack = get_payment_pack(pack_key)
+        if callback.data.startswith("pay_checks_"):
+            pack_key = callback.data.replace("pay_checks_", "")
+
+            pack = get_payment_pack(pack_key)
 
         if pack is None:
             await callback.message.answer(
@@ -281,7 +309,8 @@ async def handle_callback(callback: CallbackQuery):
 
         await callback.message.answer(
             render_result_message(sign, extra=extra)
-            + f"\n\nОсталось проверок: <b>{get_remaining_checks(user_id)}</b>"
+            + f"\n\nОсталось проверок: <b>{get_remaining_checks(user_id)}</b>",
+            reply_markup=after_check_keyboard()
         )
         return
 
@@ -353,11 +382,15 @@ async def handle_callback(callback: CallbackQuery):
             await callback.message.answer(
                 "✨ В выбранном месте в эту дату Солнце не переходило из одного знака в другой.\n\n"
                 + render_result_message(result["sign"])
-                + f"\n\nОсталось проверок: <b>{get_remaining_checks(user_id)}</b>"
+                + f"\n\nОсталось проверок: <b>{get_remaining_checks(user_id)}</b>",
+                reply_markup=after_check_keyboard()
             )
             return
 
         await callback.message.answer(
+            "✨ <b>Расчет выполнен по данным:</b>\n"
+            f"📅 {data.get('birth_date')}\n"
+            f"🌍 {short_place_name(selected_place['name'])}\n\n"
             f"✨ В этот день Солнце перешло из знака {result['from_sign']} "
             f"в знак {result['to_sign']} в <b>{result['transition_time']}</b>.\n\n"
             f"Если вы родились до <b>{result['transition_time']}</b>, "
@@ -365,7 +398,8 @@ async def handle_callback(callback: CallbackQuery):
             f"Если после <b>{result['transition_time']}</b>, "
             f"то вы — {result['to_sign']}.\n\n"
             "Теперь вы знаете. И все, что осталось — найти точное время своего рождения.\n\n"
-            f"Осталось проверок: <b>{get_remaining_checks(user_id)}</b>"
+            f"Осталось проверок: <b>{get_remaining_checks(user_id)}</b>",
+            reply_markup=after_check_keyboard()
         )
         return
 

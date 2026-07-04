@@ -129,7 +129,7 @@ def payment_method_keyboard(pack_key: str) -> InlineKeyboardMarkup:
     buttons.append(
         [
             InlineKeyboardButton(
-                text="← Назад к пакетам",
+                text="← Назад",
                 callback_data="buy_checks"
             )
         ]
