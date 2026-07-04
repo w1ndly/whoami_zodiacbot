@@ -1,11 +1,18 @@
 from aiogram import Router
 from aiogram.filters import Command
-from aiogram.types import Message
+from aiogram.types import (
+    Message,
+    CallbackQuery,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+)
 
 from services.admin_service import is_admin
 from storage import (
     get_last_robokassa_orders,
     get_last_combined_orders,
+    get_robokassa_order_status_counts,
+    get_robokassa_orders_by_status,
     get_robokassa_order,
     add_bonus_checks,
     mark_robokassa_order_paid,
@@ -13,6 +20,59 @@ from storage import (
 )
 
 router = Router()
+
+
+def robokassa_orders_keyboard():
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="⏳ Created",
+                    callback_data="orders_rs_created"
+                ),
+                InlineKeyboardButton(
+                    text="✅ Paid",
+                    callback_data="orders_rs_paid"
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="❌ Failed",
+                    callback_data="orders_rs_failed"
+                )
+            ],
+        ]
+    )
+
+
+def render_robokassa_order(order: dict) -> str:
+    paid_at = order.get("paid_at") or "—"
+
+    return (
+        f"#{order['id']}\n"
+        f"👤 User ID: <code>{order['user_id']}</code>\n"
+        f"📦 Пакет: <b>{order['pack_key']}</b>\n"
+        f"✨ Проверок: <b>{order['checks']}</b>\n"
+        f"💰 Сумма: <b>{order['amount']} ₽</b>\n"
+        f"📌 Статус: <b>{order['status']}</b>\n"
+        f"🕒 Создан: <code>{order['created_at']}</code>\n"
+        f"✅ Оплачен: <code>{paid_at}</code>\n\n"
+    )
+
+
+def render_robokassa_orders_block(
+    title: str,
+    orders: list[dict],
+) -> str:
+    text = f"{title}\n\n"
+
+    if not orders:
+        return text + "— нет заказов\n\n"
+
+    for order in orders:
+        text += render_robokassa_order(order)
+
+    return text
 
 
 @router.message(Command("admin"))
@@ -25,6 +85,8 @@ async def admin_command(message: Message):
         "Доступные команды:\n\n"
         "/stats — статистика пользователей\n"
         "/admin — список админских команд\n"
+        "/orders — последние сводные заказы\n"
+        "/orders_rs — заказы Robokassa\n"
         "/add_bonus 10 — добавить бонусные проверки\n"
         "/add_bonus user_id 10 — начислить бонусные проверки\n"
     )
@@ -60,6 +122,85 @@ async def orders_command(message: Message):
         )
 
     await message.answer(text)
+
+
+@router.message(Command("orders_rs"))
+async def orders_rs_command(message: Message):
+    if not is_admin(message.from_user.id):
+        return
+
+    counts = get_robokassa_order_status_counts()
+
+    created_orders = get_robokassa_orders_by_status("created", limit=3)
+    paid_orders = get_robokassa_orders_by_status("paid", limit=3)
+    failed_orders = get_robokassa_orders_by_status("failed", limit=3)
+
+    text = (
+        "💳 <b>Robokassa</b>\n\n"
+        f"⏳ Created: <b>{counts.get('created', 0)}</b>\n"
+        f"✅ Paid: <b>{counts.get('paid', 0)}</b>\n"
+        f"❌ Failed: <b>{counts.get('failed', 0)}</b>\n\n"
+        "━━━━━━━━━━━━━━\n\n"
+    )
+
+    text += render_robokassa_orders_block(
+        "⏳ <b>CREATED — последние 3</b>",
+        created_orders,
+    )
+
+    text += "━━━━━━━━━━━━━━\n\n"
+
+    text += render_robokassa_orders_block(
+        "✅ <b>PAID — последние 3</b>",
+        paid_orders,
+    )
+
+    text += "━━━━━━━━━━━━━━\n\n"
+
+    text += render_robokassa_orders_block(
+        "❌ <b>FAILED — последние 3</b>",
+        failed_orders,
+    )
+
+    await message.answer(
+        text,
+        reply_markup=robokassa_orders_keyboard()
+    )
+
+
+@router.callback_query(lambda callback: callback.data.startswith("orders_rs_"))
+async def orders_rs_callback(callback: CallbackQuery):
+    if not is_admin(callback.from_user.id):
+        await callback.answer()
+        return
+
+    await callback.answer()
+
+    status = callback.data.replace("orders_rs_", "")
+
+    if status not in ["created", "paid", "failed"]:
+        await callback.message.answer("Неизвестный статус заказов.")
+        return
+
+    orders = get_robokassa_orders_by_status(status, limit=10)
+
+    titles = {
+        "created": "⏳ CREATED — последние 10",
+        "paid": "✅ PAID — последние 10",
+        "failed": "❌ FAILED — последние 10",
+    }
+
+    text = "💳 <b>Robokassa</b>\n\n"
+    text += render_robokassa_orders_block(
+        f"<b>{titles[status]}</b>",
+        orders,
+    )
+
+    await callback.message.answer(
+        text,
+        reply_markup=robokassa_orders_keyboard()
+    )
+
 
 @router.message(Command("payorder"))
 async def payorder_command(message: Message):
