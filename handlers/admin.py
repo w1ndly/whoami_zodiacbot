@@ -12,7 +12,9 @@ from services.admin_service import is_admin
 from services.report_service import (
     build_robokassa_report,
     build_orders_report,
+    build_telegram_report,
 )
+
 from storage import (
     get_all_user_ids,
     get_last_robokassa_orders,
@@ -354,6 +356,24 @@ async def orders_rs_file_command(message: Message):
     await message.answer_document(
         file,
         caption="📄 Экспорт заказов Robokassa готов."
+    )
+
+
+@router.message(Command("orders_tg_file"))
+async def orders_tg_file_command(message: Message):
+    if not is_admin(message.from_user.id):
+        return
+
+    filename, content = build_telegram_report()
+
+    file = BufferedInputFile(
+        content.encode("utf-8"),
+        filename=filename,
+    )
+
+    await message.answer_document(
+        file,
+        caption="📄 Экспорт заказов Telegram Stars готов."
     )
 
 
