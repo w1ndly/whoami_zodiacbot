@@ -11,6 +11,7 @@ from database import (
     increment_used_checks,
     register_user,
     get_user,
+    get_all_user_ids as db_get_all_user_ids,
     reset_user_checks as db_reset_user_checks,
     add_check_event as db_add_check_event,
     get_bonus_checks as db_get_bonus_checks,
@@ -28,6 +29,7 @@ from database import (
     get_robokassa_orders_by_status as db_get_robokassa_orders_by_status,
     get_telegram_payments_stats as db_get_telegram_payments_stats,
     get_last_telegram_payments as db_get_last_telegram_payments,
+    
 )
 
 user_data = {}
@@ -142,3 +144,6 @@ def get_all_robokassa_orders() -> list[dict]:
 
 def get_all_payments() -> list[dict]:
     return db_get_all_payments()
+
+def get_all_user_ids() -> list[int]:
+    return db_get_all_user_ids()

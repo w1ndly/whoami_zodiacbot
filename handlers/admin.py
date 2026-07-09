@@ -14,6 +14,7 @@ from services.report_service import (
     build_orders_report,
 )
 from storage import (
+    get_all_user_ids,
     get_last_robokassa_orders,
     get_last_combined_orders,
     get_robokassa_order_status_counts,
@@ -370,6 +371,41 @@ async def orders_file_command(message: Message):
     await message.answer_document(
         file,
         caption="📄 Полный отчет по заказам готов."
+    )
+
+
+@router.message(Command("add_bonus_all"))
+async def add_bonus_all_command(message: Message):
+    if not is_admin(message.from_user.id):
+        return
+
+    parts = message.text.split()
+
+    if len(parts) != 2:
+        await message.answer(
+            "Использование:\n\n"
+            "<code>/add_bonus_all 3</code>"
+        )
+        return
+
+    try:
+        amount = int(parts[1])
+    except ValueError:
+        await message.answer("Количество проверок должно быть числом.")
+        return
+
+    if amount <= 0:
+        await message.answer("Количество проверок должно быть больше нуля.")
+        return
+
+    user_ids = get_all_user_ids()
+
+    for user_id in user_ids:
+        add_bonus_checks(user_id, amount)
+
+    await message.answer(
+        f"✅ Всем пользователям начислено по <b>{amount}</b> проверок.\n\n"
+        f"👥 Пользователей: <b>{len(user_ids)}</b>"
     )
 
 

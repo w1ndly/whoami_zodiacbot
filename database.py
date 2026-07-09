@@ -397,6 +397,17 @@ def get_bonus_checks(user_id: int) -> int:
     return row[0]
 
 
+def get_all_user_ids() -> list[int]:
+    with get_connection() as connection:
+        cursor = connection.cursor()
+
+        cursor.execute("SELECT user_id FROM users")
+
+        rows = cursor.fetchall()
+
+    return [row[0] for row in rows]
+
+
 def add_bonus_checks(user_id: int, amount: int) -> None:
     with get_connection() as connection:
         cursor = connection.cursor()
