@@ -17,6 +17,8 @@ from database import (
     get_bonus_checks as db_get_bonus_checks,
     add_bonus_checks as db_add_bonus_checks,
     use_bonus_check as db_use_bonus_check,
+    has_user_module as db_has_user_module,
+    unlock_user_module as db_unlock_user_module,
     save_payment as db_save_payment,
     create_robokassa_order as db_create_robokassa_order,
     get_robokassa_order as db_get_robokassa_order,
@@ -78,6 +80,14 @@ def add_bonus_checks(user_id: int, amount: int) -> None:
 
 def use_bonus_check(user_id: int) -> bool:
     return db_use_bonus_check(user_id)
+
+
+def has_user_module(user_id: int, module_key: str) -> bool:
+    return db_has_user_module(user_id, module_key)
+
+
+def unlock_user_module(user_id: int, module_key: str) -> None:
+    db_unlock_user_module(user_id, module_key)
 
 
 def save_payment(

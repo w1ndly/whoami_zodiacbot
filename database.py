@@ -89,6 +89,18 @@ def init_db() -> None:
 
         cursor.execute(
             """
+            CREATE TABLE IF NOT EXISTS user_modules (
+                user_id INTEGER NOT NULL,
+                module_key TEXT NOT NULL,
+                purchased_at TEXT NOT NULL,
+
+                PRIMARY KEY(user_id, module_key)
+            )
+            """
+        )
+
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS payments (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER NOT NULL,
@@ -379,6 +391,48 @@ def add_check_event(user_id: int, check_type: str) -> None:
         )
 
         connection.commit()
+
+
+def has_user_module(user_id: int, module_key: str) -> bool:
+    with get_connection() as connection:
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            SELECT 1
+            FROM user_modules
+            WHERE user_id = ?
+              AND module_key = ?
+            LIMIT 1
+            """,
+            (user_id, module_key),
+        )
+
+        row = cursor.fetchone()
+
+    return row is not None
+
+
+def unlock_user_module(user_id: int, module_key: str) -> None:
+    now = datetime.utcnow().isoformat()
+
+    with get_connection() as connection:
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            INSERT OR IGNORE INTO user_modules (
+                user_id,
+                module_key,
+                purchased_at
+            )
+            VALUES (?, ?, ?)
+            """,
+            (user_id, module_key, now),
+        )
+
+        connection.commit()
+
 
 def get_bonus_checks(user_id: int) -> int:
     with get_connection() as connection:

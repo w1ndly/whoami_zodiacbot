@@ -22,6 +22,14 @@ from services.payment_service import (
     get_invoice_prices,
 )
 from services.payment_gateway import create_robokassa_payment
+from services.module_service import (
+    EAST_CALENDAR,
+    PLANETS,
+    addons_keyboard,
+    render_addons_text,
+    has_module_access,
+    get_module,
+)
 
 router = Router()
 
@@ -79,6 +87,39 @@ async def handle_callback(callback: CallbackQuery):
             "дд.мм.гггг\n\n"
             "Например:\n"
             "21.03.1990"
+        )
+        return
+
+    if callback.data == "addons":
+        await callback.message.answer(
+            render_addons_text(user_id),
+            reply_markup=addons_keyboard(user_id)
+        )
+        return
+
+    if callback.data == "addon_planets_soon":
+        await callback.message.answer(
+            "🪐 <b>Положение планет</b>\n\n"
+            "Этот модуль появится позже."
+        )
+        return
+
+    if callback.data == "addon_east_calendar":
+        module = get_module(EAST_CALENDAR)
+
+        if has_module_access(user_id, EAST_CALENDAR):
+            await callback.message.answer(
+                "🐉 <b>Восточный календарь</b>\n\n"
+                "Модуль уже открыт.\n\n"
+                "Расчет будет добавлен следующим этапом."
+            )
+            return
+
+        await callback.message.answer(
+            f"{module['title']}\n\n"
+            f"{module['description']}\n\n"
+            f"Стоимость: <b>{module['price_rub']} ₽</b>\n\n"
+            "Покупка модуля будет добавлена следующим этапом."
         )
         return
 
