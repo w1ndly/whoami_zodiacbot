@@ -2,7 +2,7 @@ from aiogram import Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message
 
-from limits import FREE_CHECKS_PER_MONTH
+from limits import START_FREE_CHECKS
 from storage import user_data, ensure_user
 
 router = Router()
@@ -27,7 +27,7 @@ async def start(message: Message):
         "🔹 Для большинства дат знак определяется сразу.\n"
         "🔹 Для пограничных дат учитываются время и место рождения.\n"
         "🔹 Расчеты выполняются с астрономической точностью.\n\n"
-        f"В бесплатной версии доступно <b>{FREE_CHECKS_PER_MONTH}</b> проверок.\n\n"
+        f"В бесплатной версии доступно <b>{START_FREE_CHECKS}</b> проверок.\n\n"
         "Введите дату рождения в формате:\n"
         "📅 <b>дд.мм.гггг</b>\n\n"
         "Например:\n"
