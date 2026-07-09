@@ -148,6 +148,8 @@ async def admin_command(message: Message):
         "/orders — последние сводные заказы\n"
         "/orders_rs — заказы Robokassa\n"
         "/orders_tg — заказы Telegram Stars\n"
+        "/orders_file — полный TXT-экспорт всех заказов\n"
+        "/orders_tg_file — TXT-экспорт Telegram Stars\n"
         "/add_bonus 10 — добавить бонусные проверки\n"
         "/add_bonus user_id 10 — начислить проверки\n"
         "/add_bonus_all 3 — начислить проверки всем пользователям\n"

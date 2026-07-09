@@ -41,6 +41,12 @@ TXT-экспорт всех заказов Robokassa.
 /orders_tg_file
 TXT-экспорт заказов Telegram Stars.
 
+/orders_file
+TXT-экспорт всех заказов и оплат.
+
+/orders_tg_file
+TXT-экспорт заказов Telegram Stars.
+
 /add_bonus 10
 Добавить проверки себе.
 
