@@ -52,7 +52,7 @@ def build_robokassa_report() -> tuple[str, str]:
     paid_orders = [order for order in orders if order["status"] == "paid"]
     failed_orders = [order for order in orders if order["status"] == "failed"]
 
-    created_sum = sum(order["amount"] for order in created_orders)
+    
     paid_sum = sum(order["amount"] for order in paid_orders)
 
     package_stats = {}
@@ -77,7 +77,6 @@ def build_robokassa_report() -> tuple[str, str]:
         f"CREATED           : {len(created_orders)}\n"
         f"PAID              : {len(paid_orders)}\n"
         f"FAILED            : {len(failed_orders)}\n\n"
-        f"Ожидается оплаты  : {created_sum} RUB\n"
         f"Получено оплат    : {paid_sum} RUB\n"
     )
 
