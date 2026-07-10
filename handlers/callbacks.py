@@ -90,6 +90,16 @@ async def handle_callback(callback: CallbackQuery):
         )
         return
 
+    if callback.data == "back_profile":
+        from user_profile import render_profile_text
+        from handlers.profile import profile_keyboard
+
+        await callback.message.edit_text(
+            render_profile_text(user_id),
+            reply_markup=profile_keyboard(),
+        )
+        return
+
     if callback.data == "addons":
         await callback.message.answer(
             render_addons_text(user_id),

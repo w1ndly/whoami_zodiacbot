@@ -38,27 +38,41 @@ def unlock_module(user_id: int, module_key: str) -> None:
 
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
+from aiogram.types import (
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+)
 
 def addons_keyboard(user_id: int):
-    east_calendar_open = has_module_access(user_id, EAST_CALENDAR)
+    east_calendar_open = has_module_access(
+        user_id,
+        EAST_CALENDAR,
+    )
 
-    east_calendar_text = "🐉 Восточный календарь"
-
-    if east_calendar_open:
-        east_calendar_text = "✅ Восточный календарь"
+    east_calendar_text = (
+        "✅ Восточный календарь"
+        if east_calendar_open
+        else "🐉 Восточный календарь"
+    )
 
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
                     text=east_calendar_text,
-                    callback_data="addon_east_calendar"
+                    callback_data="addon_east_calendar",
                 )
             ],
             [
                 InlineKeyboardButton(
                     text="🪐 Положение планет — скоро",
-                    callback_data="addon_planets_soon"
+                    callback_data="addon_planets_soon",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="← Вернуться в профиль",
+                    callback_data="back_profile",
                 )
             ],
         ]
