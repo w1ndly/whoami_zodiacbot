@@ -19,6 +19,8 @@ from database import (
     use_bonus_check as db_use_bonus_check,
     has_user_module as db_has_user_module,
     unlock_user_module as db_unlock_user_module,
+    save_last_birth_data as db_save_last_birth_data,
+    get_last_birth_data as db_get_last_birth_data,
     save_payment as db_save_payment,
     create_robokassa_order as db_create_robokassa_order,
     get_robokassa_order as db_get_robokassa_order,
@@ -88,6 +90,28 @@ def has_user_module(user_id: int, module_key: str) -> bool:
 
 def unlock_user_module(user_id: int, module_key: str) -> None:
     db_unlock_user_module(user_id, module_key)
+
+
+def save_last_birth_data(
+    user_id: int,
+    birth_date: str,
+    birth_time: str,
+    place_name: str,
+    latitude: float,
+    longitude: float,
+) -> None:
+    db_save_last_birth_data(
+        user_id=user_id,
+        birth_date=birth_date,
+        birth_time=birth_time,
+        place_name=place_name,
+        latitude=latitude,
+        longitude=longitude,
+    )
+
+
+def get_last_birth_data(user_id: int) -> dict | None:
+    return db_get_last_birth_data(user_id)
 
 
 def save_payment(

@@ -101,6 +101,20 @@ def init_db() -> None:
 
         cursor.execute(
             """
+            CREATE TABLE IF NOT EXISTS last_birth_data (
+                user_id INTEGER PRIMARY KEY,
+                birth_date TEXT NOT NULL,
+                birth_time TEXT NOT NULL,
+                place_name TEXT NOT NULL,
+                latitude REAL NOT NULL,
+                longitude REAL NOT NULL,
+                saved_at TEXT NOT NULL
+            )
+            """
+        )
+
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS payments (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER NOT NULL,
@@ -391,6 +405,89 @@ def add_check_event(user_id: int, check_type: str) -> None:
         )
 
         connection.commit()
+
+
+def save_last_birth_data(
+    user_id: int,
+    birth_date: str,
+    birth_time: str,
+    place_name: str,
+    latitude: float,
+    longitude: float,
+) -> None:
+    now = datetime.utcnow().isoformat()
+
+    with get_connection() as connection:
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            INSERT INTO last_birth_data (
+                user_id,
+                birth_date,
+                birth_time,
+                place_name,
+                latitude,
+                longitude,
+                saved_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+
+            ON CONFLICT(user_id)
+            DO UPDATE SET
+                birth_date = excluded.birth_date,
+                birth_time = excluded.birth_time,
+                place_name = excluded.place_name,
+                latitude = excluded.latitude,
+                longitude = excluded.longitude,
+                saved_at = excluded.saved_at
+            """,
+            (
+                user_id,
+                birth_date,
+                birth_time,
+                place_name,
+                latitude,
+                longitude,
+                now,
+            ),
+        )
+
+        connection.commit()
+
+
+def get_last_birth_data(user_id: int) -> dict | None:
+    with get_connection() as connection:
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            SELECT
+                birth_date,
+                birth_time,
+                place_name,
+                latitude,
+                longitude,
+                saved_at
+            FROM last_birth_data
+            WHERE user_id = ?
+            """,
+            (user_id,),
+        )
+
+        row = cursor.fetchone()
+
+    if row is None:
+        return None
+
+    return {
+        "birth_date": row[0],
+        "birth_time": row[1],
+        "place_name": row[2],
+        "latitude": row[3],
+        "longitude": row[4],
+        "saved_at": row[5],
+    }
 
 
 def has_user_module(user_id: int, module_key: str) -> bool:

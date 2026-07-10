@@ -6,7 +6,11 @@ from aiogram.types import (
     InlineKeyboardButton,
 )
 
-from storage import user_data
+from storage import (
+    user_data,
+    save_last_birth_data,
+    get_last_birth_data,
+)
 from user_profile import (
     can_make_check,
     add_check,
@@ -118,10 +122,20 @@ async def handle_callback(callback: CallbackQuery):
         module = get_module(EAST_CALENDAR)
 
         if has_module_access(user_id, EAST_CALENDAR):
+            birth_data = get_last_birth_data(user_id)
+
+            if birth_data is None:
+                await callback.message.answer(
+                    "🐉 <b>Восточный календарь</b>\n\n"
+                    "Сначала выполните обычный расчет с указанием "
+                    "даты, времени и места рождения."
+                )
+                return
+
             await callback.message.answer(
                 "🐉 <b>Восточный календарь</b>\n\n"
-                "Модуль уже открыт.\n\n"
-                "Расчет будет добавлен следующим этапом."
+                "Данные рождения найдены.\n\n"
+                "Расчет подключим следующим этапом."
             )
             return
 
@@ -346,6 +360,16 @@ async def handle_callback(callback: CallbackQuery):
             return
 
         add_check(user_id)
+
+        save_last_birth_data(
+            user_id=user_id,
+            birth_date=data.get("birth_date"),
+            birth_time=data.get("birth_time") or "12:00",
+            place_name=selected_place["name"],
+            latitude=selected_place["latitude"],
+            longitude=selected_place["longitude"],
+        )
+
         user_data.pop(user_id, None)
 
         extra = (
@@ -425,6 +449,16 @@ async def handle_callback(callback: CallbackQuery):
             return
 
         add_check(user_id)
+
+        save_last_birth_data(
+            user_id=user_id,
+            birth_date=data.get("birth_date"),
+            birth_time=data.get("birth_time") or "12:00",
+            place_name=selected_place["name"],
+            latitude=selected_place["latitude"],
+            longitude=selected_place["longitude"],
+        )
+
         user_data.pop(user_id, None)
 
         if result.get("is_transition_day") is False:
