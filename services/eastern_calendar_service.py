@@ -87,7 +87,7 @@ def build_birth_datetime_utc(
     birth_time: str,
     latitude: float,
     longitude: float,
-) -> tuple[datetime, str]:
+) -> tuple[datetime, datetime, str]:
     """
     Создает точный момент рождения в UTC
     с учетом координат и местного часового пояса.
@@ -113,7 +113,7 @@ def build_birth_datetime_utc(
         ZoneInfo("UTC")
     )
 
-    return birth_utc, timezone_name
+    return birth_local, birth_utc, timezone_name
 
 
 def get_eastern_calendar(
@@ -128,14 +128,14 @@ def get_eastern_calendar(
 
     Все астрономические события сравниваются в UTC.
     """
-    birth_utc, timezone_name = build_birth_datetime_utc(
+    birth_local, birth_utc, timezone_name = build_birth_datetime_utc(
         birth_date=birth_date,
         birth_time=birth_time,
         latitude=latitude,
         longitude=longitude,
     )
 
-    calendar_year = birth_utc.year
+    calendar_year = birth_local.year
 
     current_year_start_utc = find_eastern_new_year_utc(
         calendar_year
