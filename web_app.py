@@ -4,6 +4,7 @@ from fastapi import FastAPI, Form
 from fastapi.responses import PlainTextResponse
 
 from services.robokassa_service import check_result_signature
+from services.module_service import unlock_module
 from storage import (
     add_bonus_checks,
     get_robokassa_order,
@@ -98,10 +99,20 @@ async def robokassa_result(
             status_code=400,
         )
 
-    add_bonus_checks(
-        user_id=order["user_id"],
-        amount=order["checks"],
-    )
+    if order["pack_key"].startswith("module_"):
+        module_key = order["pack_key"].removeprefix(
+            "module_"
+        )
+
+        unlock_module(
+            user_id=order["user_id"],
+            module_key=module_key,
+        )
+    else:
+        add_bonus_checks(
+            user_id=order["user_id"],
+            amount=order["checks"],
+        )
 
     save_payment(
         user_id=order["user_id"],

@@ -25,14 +25,24 @@ from services.payment_service import (
     get_payment_pack,
     get_invoice_prices,
 )
+from services.eastern_calendar_service import (
+    get_eastern_calendar,
+    render_eastern_calendar_result,
+)
 from services.payment_gateway import create_robokassa_payment
 from services.module_service import (
     EAST_CALENDAR,
     PLANETS,
     addons_keyboard,
+    back_to_addons_keyboard,
+    module_purchase_keyboard,
+    module_payment_method_keyboard,
     render_addons_text,
+    render_module_payment_text,
     has_module_access,
     get_module,
+    get_module_invoice_prices,
+    get_module_payment_payload,
 )
 
 router = Router()
@@ -118,6 +128,7 @@ async def handle_callback(callback: CallbackQuery):
         )
         return
 
+
     if callback.data == "addon_east_calendar":
         module = get_module(EAST_CALENDAR)
 
@@ -127,23 +138,195 @@ async def handle_callback(callback: CallbackQuery):
             if birth_data is None:
                 await callback.message.answer(
                     "🐉 <b>Восточный календарь</b>\n\n"
-                    "Сначала выполните обычный расчет с указанием "
-                    "даты, времени и места рождения."
+                    "Сначала выполните обычный расчет знака "
+                    "с указанием даты, времени и места рождения.",
+                    reply_markup=back_to_addons_keyboard(),
                 )
                 return
 
+            try:
+                eastern_result = get_eastern_calendar(
+                    birth_date=birth_data["birth_date"],
+                    birth_time=birth_data["birth_time"],
+                    latitude=birth_data["latitude"],
+                    longitude=birth_data["longitude"],
+                )
+            except (ValueError, RuntimeError) as error:
+                await callback.message.answer(
+                    "Не удалось выполнить расчет Восточного календаря.\n\n"
+                    "Пожалуйста, выполните обычный расчет еще раз "
+                    "и проверьте дату, время и место рождения.",
+                    reply_markup=back_to_addons_keyboard(),
+                )
+                print(
+                    "Ошибка расчета Восточного календаря: "
+                    f"{type(error).__name__}: {error}"
+                )
+                return
+
+            result_text = (
+                "✨ <b>Расчет выполнен по данным:</b>\n"
+                f"📅 {birth_data['birth_date']}\n"
+                f"🕓 {birth_data['birth_time']}\n"
+                f"🌍 {short_place_name(birth_data['place_name'])}\n\n"
+                + render_eastern_calendar_result(eastern_result)
+            )
+
             await callback.message.answer(
-                "🐉 <b>Восточный календарь</b>\n\n"
-                "Данные рождения найдены.\n\n"
-                "Расчет подключим следующим этапом."
+                result_text,
+                reply_markup=back_to_addons_keyboard(),
             )
             return
 
         await callback.message.answer(
             f"{module['title']}\n\n"
             f"{module['description']}\n\n"
+            "Дополнение приобретается один раз "
+            "и остается доступно навсегда.\n\n"
+            f"⭐ Telegram Stars: <b>{module['price_stars']} ⭐</b>\n"
+            f"💳 Банковская карта: <b>{module['price_rub']} ₽</b>",
+            reply_markup=module_purchase_keyboard(EAST_CALENDAR),
+        )
+        return
+
+    if callback.data.startswith("buy_module_"):
+        module_key = callback.data.removeprefix("buy_module_")
+        module = get_module(module_key)
+
+        if module is None:
+            await callback.message.answer(
+                "Не удалось найти выбранное дополнение.",
+                reply_markup=back_to_addons_keyboard(),
+            )
+            return
+
+        if has_module_access(user_id, module_key):
+            await callback.message.answer(
+                "Это дополнение уже открыто.",
+                reply_markup=back_to_addons_keyboard(),
+            )
+            return
+
+        await callback.message.answer(
+            render_module_payment_text(module_key),
+            reply_markup=module_payment_method_keyboard(module_key),
+        )
+        return
+
+    if callback.data.startswith("pay_module_stars_"):
+        module_key = callback.data.removeprefix(
+            "pay_module_stars_"
+        )
+        module = get_module(module_key)
+
+        if module is None:
+            await callback.message.answer(
+                "Не удалось найти выбранное дополнение.",
+                reply_markup=back_to_addons_keyboard(),
+            )
+            return
+
+        if has_module_access(user_id, module_key):
+            await callback.message.answer(
+                "Это дополнение уже открыто.",
+                reply_markup=back_to_addons_keyboard(),
+            )
+            return
+
+        payload = get_module_payment_payload(module_key)
+
+        await callback.message.answer_invoice(
+            title=module["title"],
+            description=module["description"],
+            payload=payload,
+            provider_token="",
+            currency="XTR",
+            prices=get_module_invoice_prices(module_key),
+            reply_markup=InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [
+                        InlineKeyboardButton(
+                            text="⭐ Оплатить Stars",
+                            pay=True,
+                        )
+                    ],
+                    [
+                        InlineKeyboardButton(
+                            text="← Другой способ оплаты",
+                            callback_data=f"buy_module_{module_key}",
+                        )
+                    ],
+                    [
+                        InlineKeyboardButton(
+                            text="← Назад в дополнения",
+                            callback_data="addons",
+                        )
+                    ],
+                ]
+            ),
+        )
+        return
+
+    if callback.data.startswith("pay_module_robokassa_"):
+        module_key = callback.data.removeprefix(
+            "pay_module_robokassa_"
+        )
+        module = get_module(module_key)
+
+        if module is None:
+            await callback.message.answer(
+                "Не удалось найти выбранное дополнение.",
+                reply_markup=back_to_addons_keyboard(),
+            )
+            return
+
+        if has_module_access(user_id, module_key):
+            await callback.message.answer(
+                "Это дополнение уже открыто.",
+                reply_markup=back_to_addons_keyboard(),
+            )
+            return
+
+        payload = get_module_payment_payload(module_key)
+
+        payment_url = create_robokassa_payment(
+            user_id=user_id,
+            pack_key=payload,
+            checks=0,
+            amount=module["price_rub"],
+            description=(
+                f"Покупка дополнения: {module['title']}"
+            ),
+        )
+
+        await callback.message.answer(
+            "💳 <b>Оплата банковской картой</b>\n\n"
+            f"{module['title']}\n"
             f"Стоимость: <b>{module['price_rub']} ₽</b>\n\n"
-            "Покупка модуля будет добавлена следующим этапом."
+            "После оплаты дополнение будет открыто "
+            "автоматически и останется доступно навсегда.",
+            reply_markup=InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [
+                        InlineKeyboardButton(
+                            text="💳 Перейти к оплате",
+                            url=payment_url,
+                        )
+                    ],
+                    [
+                        InlineKeyboardButton(
+                            text="← Другой способ оплаты",
+                            callback_data=f"buy_module_{module_key}",
+                        )
+                    ],
+                    [
+                        InlineKeyboardButton(
+                            text="← Назад в дополнения",
+                            callback_data="addons",
+                        )
+                    ],
+                ]
+            ),
         )
         return
 
