@@ -1,3 +1,8 @@
+from aiogram.types import (
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+    LabeledPrice,
+)
 from storage import (
     has_user_module,
     unlock_user_module,
